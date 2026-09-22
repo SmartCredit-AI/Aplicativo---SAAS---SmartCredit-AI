@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCreditAI - Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { display: flex; height: 100vh; background-color: #f4f6f9; color: #333; }
+        
+        /* MENU LATERAL ESTILO RECEBEAI */
+        .sidebar { width: 250px; background-color: #0d1b2a; color: #ffffff; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 0; }
+        .brand { font-size: 1.4rem; font-weight: bold; color: #00b4d8; padding: 0 20px 20px; border-bottom: 1px solid #1b263b; }
+        .menu { list-style: none; margin-top: 20px; }
+        .menu li a { display: flex; align-items: center; gap: 12px; padding: 14px 20px; color: #e0e1dd; text-decoration: none; font-size: 0.95rem; }
+        .menu li.active a, .menu li a:hover { background-color: #1b263b; color: #00b4d8; border-left: 4px solid #00b4d8; }
+        
+        /* CONTEÚDO PRINCIPAL */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .header { padding: 25px 30px 10px; }
+        .header h1 { font-size: 1.6rem; color: #1b263b; }
+        .header p { color: #6c757d; font-size: 0.9rem; margin-top: 4px; }
+        
+        /* CARTÕES INDICADORES */
+        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 20px 30px; }
+        .kpi-card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border-left: 5px solid #00b4d8; }
+        .kpi-card.green { border-left-color: #2ec4b6; }
+        .kpi-card.red { border-left-color: #e63946; }
+        .kpi-card.purple { border-left-color: #7209b7; }
+        .kpi-title { font-size: 0.8rem; font-weight: bold; color: #6c757d; }
+        .kpi-value { font-size: 1.6rem; font-weight: bold; color: #1b263b; margin: 10px 0 5px; }
+        
+        /* FORMULÁRIO DE SIMULAÇÃO */
+        .panel-section { padding: 10px 30px 30px; }
+        .card-panel { background: #fff; border-radius: 10px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+        .btn-submit { background: #00b4d8; color: #fff; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-submit:hover { background: #0096c7; }
+        .result-box { margin-top: 20px; padding: 15px; background: #eef9ff; border-radius: 6px; border: 1px solid #bee1f4; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div>
+            <div class="brand">⚡ SmartCreditAI</div>
+            <ul class="menu">
+                <li class="active"><a href="#">🏠 Dashboard</a></li>
+                <li><a href="#">🔍 Nova Análise</a></li>
+                <li><a href="#">📊 Relatórios</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>🏠 Visão Geral da Carteira de Crédito</h1>
+            <p>Resumo de risco corporativo e recomendações de limites em tempo real.</p>
+        </div>
+
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <span class="kpi-title">TOTAL ANALISADO</span>
+                <div class="kpi-value">128 CNPJs</div>
+            </div>
+            <div class="kpi-card green">
+                <span class="kpi-title">LIMITES SUGERIDOS</span>
+                <div class="kpi-value">R$ 1.450.000</div>
+            </div>
+            <div class="kpi-card red">
+                <span class="kpi-title">RISCO ALTO</span>
+                <div class="kpi-value">12 Empresas</div>
+            </div>
+            <div class="kpi-card purple">
+                <span class="kpi-title">TAXA DE APROVAÇÃO</span>
+                <div class="kpi-value">78,5%</div>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="card-panel">
+                <h2>⚡ Simulação Rápida de Crédito B2B</h2>
+                <form id="creditForm">
+                    <div class="form-group">
+                        <label>Receita Líquida Anual (R$)</label>
+                        <input type="number" id="receita" value="1200000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Liquidez Corrente</label>
+                        <input type="number" step="0.1" id="liquidez" value="1.6" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Margem Líquida (%)</label>
+                        <input type="number" step="0.1" id="margem" value="12.5" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Endividamento Geral (%)</label>
+                        <input type="number" step="0.1" id="endividamento" value="45.0" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Calcular Decisão de Crédito</button>
+                </form>
+
+                <div id="result" class="result-box"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('creditForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                receita_liquida_anual: parseFloat(document.getElementById('receita').value),
+                liquidez_corrente: parseFloat(document.getElementById('liquidez').value),
+                margem_liquida: parseFloat(document.getElementById('margem').value),
+                endividamento_geral: parseFloat(document.getElementById('endividamento').value)
+            };
+
+            const res = await fetch('http://127.0.0.1:8000/api/v1/decisao/analisar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <h3>Resultado da Análise:</h3>
+                <p><strong>Score:</strong> ${data.score} / 1000</p>
+                <p><strong>Decisão:</strong> ${data.status_decisao}</p>
+                <p><strong>Classificação de Risco:</strong> ${data.classificacao_risco}</p>
+                <p><strong>Limite Sugerido:</strong> R$ ${data.limite_sugerido.toLocaleString('pt-BR')}</p>
+            `;
+        });
+    </script>
+</body>
+</html>
