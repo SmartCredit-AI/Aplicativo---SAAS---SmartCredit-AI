@@ -69,16 +69,24 @@
 <script>
     const byId = (id) => document.getElementById(id);
     const money = (value) => value ? Number(value).toLocaleString('pt-BR', { style:'currency', currency:'BRL' }) : 'Não informado';
-    byId('searchButton').addEventListener('click', async () => {
+    const apiBase = window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '';
+    const showLookupError = (message) => { byId('companyCard').className = 'company-card visible'; byId('companyCard').innerHTML = `<strong>Não foi possível consultar o CNPJ.</strong><p>${message}</p>`; };
+    const consultarCnpj = async () => {
         const cnpj = byId('cnpj').value.replace(/\D/g, '');
         if (cnpj.length !== 14) return alert('Informe um CNPJ válido com 14 dígitos.');
-        const response = await fetch(`/api/v1/empresa/${cnpj}`);
-        const data = await response.json();
-        if (!data.encontrada) return alert(data.mensagem);
-        byId('companyCard').className = 'company-card visible';
-        byId('companyCard').innerHTML = `<div class="company-name">${data.nome_fantasia || data.razao_social}</div><p>${data.razao_social || ''} · ${data.situacao || 'Situação não informada'}</p><div class="company-meta"><div><strong>Endereço</strong>${data.endereco || 'Não informado'}</div><div><strong>Telefone / e-mail</strong>${data.telefone || 'Não informado'}<br>${data.email || 'Não informado'}</div><div><strong>CNAE / capital social</strong>${data.cnae}<br>${money(data.capital_social)}</div><div><strong>Quadro de funcionários</strong>${data.funcionarios || 'Não informado pela fonte cadastral'}</div></div>`;
-        byId('documents').className = 'documents visible'; byId('step2').className = 'step active';
-    });
+        byId('searchButton').disabled = true; byId('searchButton').textContent = 'Consultando...';
+        try {
+            const response = await fetch(`${apiBase}/api/v1/empresa/${cnpj}`);
+            const data = await response.json();
+            if (!response.ok || !data.encontrada) return showLookupError(data.mensagem || `O servidor respondeu com status ${response.status}.`);
+            byId('companyCard').className = 'company-card visible';
+            byId('companyCard').innerHTML = `<div class="company-name">${data.nome_fantasia || data.razao_social}</div><p>${data.razao_social || ''} · ${data.situacao || 'Situação não informada'}</p><div class="company-meta"><div><strong>Endereço</strong>${data.endereco || 'Não informado'}</div><div><strong>Telefone / e-mail</strong>${data.telefone || 'Não informado'}<br>${data.email || 'Não informado'}</div><div><strong>CNAE / capital social</strong>${data.cnae}<br>${money(data.capital_social)}</div><div><strong>Quadro de funcionários</strong>${data.funcionarios || 'Não informado pela fonte cadastral'}</div></div>`;
+            byId('documents').className = 'documents visible'; byId('step2').className = 'step active';
+        } catch (error) { showLookupError('Verifique se o FastAPI está em execução ou se a aplicação foi publicada corretamente.'); }
+        finally { byId('searchButton').disabled = false; byId('searchButton').textContent = 'Consultar CNPJ'; }
+    };
+    byId('searchButton').addEventListener('click', consultarCnpj);
+    byId('cnpj').addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); consultarCnpj(); } });
     ['balanco','dre'].forEach((id) => byId(id).addEventListener('change', () => { if (byId('balanco').files.length && byId('dre').files.length) { byId('financials').className = 'financials visible'; byId('step3').className = 'step active'; } }));
     byId('creditForm').addEventListener('submit', async (event) => { event.preventDefault(); const payload = { receita_liquida_anual:+byId('receita').value, liquidez_corrente:+byId('liquidez').value, margem_liquida:+byId('margem').value, endividamento_geral:+byId('endividamento').value }; const response = await fetch('/api/v1/decisao/analisar', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); const data = await response.json(); const result = byId('result'); result.style.display = 'block'; result.innerHTML = `<strong>Resultado da análise</strong><br>Score: <b>${data.score} / 1000</b> · Risco: <b>${data.classificacao_risco}</b><br>Decisão: <b>${data.status_decisao}</b><br>Limite sugerido: <b>${money(data.limite_sugerido)}</b>`; });
 +</script>
