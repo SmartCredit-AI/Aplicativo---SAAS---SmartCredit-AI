@@ -114,7 +114,11 @@ def consultar_empresa(cnpj: str):
         "email": dados.get("email"),
         "cnae": dados.get("cnae_fiscal_descricao") or "Não informado",
         "capital_social": dados.get("capital_social"),
-        "funcionarios": dados.get("quantidade_funcionarios")
+        "funcionarios": dados.get("quantidade_funcionarios"),
+        "porte": dados.get("porte") or dados.get("descricao_porte") or "Não informado",
+        "natureza_juridica": dados.get("natureza_juridica") or "Não informada",
+        "data_inicio_atividade": dados.get("data_inicio_atividade") or "Não informada",
+        "qsa": dados.get("qsa") or []
     }
 
 

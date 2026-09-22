@@ -449,6 +449,165 @@
             line-height: 1.4;
         }
 
+        /* QSA - Quadro Societário e Administradores */
+        .qsa-wrapper {
+            margin-top: 24px;
+            margin-bottom: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .qsa-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .qsa-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .qsa-title svg {
+            color: var(--primary);
+        }
+
+        .qsa-badge-count {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--primary);
+            font-size: 0.76rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .qsa-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .qsa-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .qsa-grid::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
+        }
+
+        .qsa-grid::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+        }
+
+        .socio-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .socio-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(6, 182, 212, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .socio-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .socio-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2));
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.82rem;
+            flex-shrink: 0;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .socio-name-box {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .socio-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .socio-role {
+            display: inline-block;
+            font-size: 0.7rem;
+            color: var(--primary);
+            background: rgba(6, 182, 212, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 3px;
+            font-weight: 600;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .socio-meta-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 6px;
+        }
+
+        .socio-meta-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .socio-meta-item span:first-child {
+            color: var(--text-subtle);
+        }
+
+        .socio-empty {
+            grid-column: 1 / -1;
+            padding: 20px;
+            text-align: center;
+            color: var(--text-subtle);
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px dashed rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-sm);
+        }
+
         /* Step 2 - Documents */
         .step-section {
             display: none;
@@ -1053,6 +1212,30 @@
                             <strong>Capital Social</strong>
                             <div id="compCapital">-</div>
                         </div>
+                        <div class="company-stat">
+                            <strong>Porte da Empresa</strong>
+                            <div id="compPorte">-</div>
+                        </div>
+                        <div class="company-stat">
+                            <strong>Natureza Jurídica</strong>
+                            <div id="compNatureza">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Quadro Societário e Administradores (QSA) -->
+                    <div class="qsa-wrapper">
+                        <div class="qsa-header">
+                            <div class="qsa-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                                <span>Quadro de Sócios e Administradores (QSA)</span>
+                            </div>
+                            <span class="qsa-badge-count" id="qsaCountBadge">0 sócios</span>
+                        </div>
+                        <div class="qsa-grid" id="qsaList">
+                            <!-- Inserido dinamicamente via JS -->
+                        </div>
                     </div>
 
                     <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
@@ -1411,10 +1594,63 @@
                 byId('compContato').innerHTML = `${data.telefone || 'Sem telefone'}<br>${data.email || 'Sem e-mail'}`;
                 byId('compCnae').textContent = data.cnae;
                 byId('compCapital').textContent = data.capital_social ? formatMoney(data.capital_social) : 'Não informado';
+                byId('compPorte').textContent = data.porte || 'Não informado';
+                byId('compNatureza').textContent = data.natureza_juridica || 'Não informada';
+
+                // Renderização do Quadro Societário (QSA)
+                const qsaList = data.qsa || [];
+                const qsaBadge = byId('qsaCountBadge');
+                const qsaContainer = byId('qsaList');
+
+                qsaBadge.textContent = `${qsaList.length} ${qsaList.length === 1 ? 'sócio / administrador' : 'sócios / administradores'}`;
+
+                if (qsaList.length === 0) {
+                    qsaContainer.innerHTML = `
+                        <div class="socio-empty">
+                            Nenhum sócio adicional informado na base cadastral (Empresa individual, MEI ou sem registro de QSA na Receita Federal).
+                        </div>
+                    `;
+                } else {
+                    qsaContainer.innerHTML = qsaList.map(s => {
+                        const inicial = (s.nome_socio || 'S').trim().charAt(0).toUpperCase();
+                        const doc = s.cnpj_cpf_do_socio || 'Não informado';
+                        const entrada = s.data_entrada_sociedade ? new Date(s.data_entrada_sociedade + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informada';
+                        const faixa = s.faixa_etaria || 'Não informada';
+                        const papel = s.qualificacao_socio || 'Sócio / Administrador';
+                        const rep = s.nome_representante_legal ? `<div class="socio-meta-item"><span>Rep. Legal:</span><strong style="color:#e2e8f0;">${s.nome_representante_legal}</strong></div>` : '';
+
+                        return `
+                            <div class="socio-card">
+                                <div class="socio-top">
+                                    <div class="socio-avatar">${inicial}</div>
+                                    <div class="socio-name-box">
+                                        <div class="socio-name" title="${s.nome_socio}">${s.nome_socio}</div>
+                                        <span class="socio-role" title="${papel}">${papel}</span>
+                                    </div>
+                                </div>
+                                <div class="socio-meta-list">
+                                    <div class="socio-meta-item">
+                                        <span>Documento:</span>
+                                        <strong>${doc}</strong>
+                                    </div>
+                                    <div class="socio-meta-item">
+                                        <span>Entrada:</span>
+                                        <span>${entrada}</span>
+                                    </div>
+                                    <div class="socio-meta-item">
+                                        <span>Faixa etária:</span>
+                                        <span>${faixa}</span>
+                                    </div>
+                                    ${rep}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
 
                 byId('companyPanel').classList.add('visible');
                 byId('stepCard1').classList.add('completed');
-                showToast('Dados cadastrais localizados com sucesso!', 'success');
+                showToast('Dados cadastrais e societários localizados!', 'success');
 
             } catch (err) {
                 showToast('Erro de conexão com o servidor FastAPI.', 'error');
@@ -1589,6 +1825,8 @@
             byId('resultPanel').classList.remove('visible');
             byId('fileNameBalanco').style.display = 'none';
             byId('fileNameDre').style.display = 'none';
+            byId('qsaList').innerHTML = '';
+            byId('qsaCountBadge').textContent = '0 sócios';
             byId('stepCard1').className = 'step-card active';
             byId('stepCard2').className = 'step-card';
             byId('stepCard3').className = 'step-card';
