@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCreditAI - Inteligência em Análise de Crédito Empresarial</title>
+    <title>SmartCreditAI - Inteligência em Análise Contábil e Decisão de Crédito</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,8 +11,9 @@
         :root {
             --bg-body: #0a0f1d;
             --bg-surface: #111827;
-            --bg-card: rgba(17, 24, 39, 0.85);
-            --bg-input: #1f293d;
+            --bg-card: rgba(17, 24, 39, 0.88);
+            --bg-card-subtle: rgba(23, 32, 54, 0.65);
+            --bg-input: #1a2336;
             --border-color: rgba(255, 255, 255, 0.08);
             --border-focus: #06b6d4;
             --primary: #06b6d4;
@@ -101,7 +102,6 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            flex: 1;
         }
 
         .nav-item a {
@@ -111,9 +111,9 @@
             padding: 12px 14px;
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.92rem;
-            font-weight: 500;
             border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 500;
             transition: var(--transition);
         }
 
@@ -124,12 +124,13 @@
 
         .nav-item.active a {
             color: #fff;
-            background: linear-gradient(90deg, rgba(6, 182, 212, 0.15), rgba(6, 182, 212, 0.03));
+            background: rgba(6, 182, 212, 0.12);
             border-left: 3px solid var(--primary);
             font-weight: 600;
         }
 
         .sidebar-footer {
+            margin-top: auto;
             padding-top: 20px;
             border-top: 1px solid var(--border-color);
             display: flex;
@@ -154,7 +155,7 @@
         .main-wrapper {
             flex: 1;
             padding: 36px 48px 60px;
-            max-width: 1300px;
+            max-width: 1350px;
             overflow-y: auto;
         }
 
@@ -185,7 +186,7 @@
         .subtitle {
             color: var(--text-muted);
             font-size: 0.95rem;
-            max-width: 720px;
+            max-width: 760px;
             line-height: 1.5;
         }
 
@@ -273,7 +274,7 @@
             color: var(--text-muted);
         }
 
-        /* Main Panel Glass Card */
+        /* Glass Card */
         .glass-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -281,6 +282,7 @@
             padding: 32px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
             backdrop-filter: blur(16px);
+            margin-bottom: 24px;
         }
 
         .card-header {
@@ -299,60 +301,54 @@
             font-size: 0.88rem;
         }
 
-        /* Inputs & Actions */
+        /* Inputs & Buttons */
         .input-row {
             display: flex;
             gap: 12px;
-            max-width: 680px;
+            max-width: 600px;
         }
 
         .input-field {
-            flex: 1;
+            width: 100%;
             background: var(--bg-input);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
-            padding: 13px 18px;
+            padding: 12px 16px;
             color: #fff;
-            font-size: 0.98rem;
-            transition: var(--transition);
+            font-size: 0.95rem;
             outline: none;
+            transition: var(--transition);
         }
 
         .input-field:focus {
             border-color: var(--border-focus);
-            box-shadow: 0 0 0 3px var(--primary-glow);
-            background: rgba(31, 41, 61, 0.9);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
         }
 
         .btn {
-            border: 0;
-            border-radius: var(--radius-sm);
-            padding: 13px 24px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            padding: 12px 22px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
             transition: var(--transition);
+            white-space: nowrap;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary), #0284c7);
             color: #fff;
-            box-shadow: 0 4px 16px var(--primary-glow);
+            box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
         }
 
-        .btn-primary:hover:not(:disabled) {
+        .btn-primary:hover {
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px var(--primary-glow);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.45);
         }
 
         .btn-secondary {
@@ -363,6 +359,17 @@
 
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-outline-cyan {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(6, 182, 212, 0.35);
+        }
+
+        .btn-outline-cyan:hover {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: var(--primary);
         }
 
         /* Company Card */
@@ -449,7 +456,7 @@
             line-height: 1.4;
         }
 
-        /* QSA - Quadro Societário e Administradores */
+        /* QSA */
         .qsa-wrapper {
             margin-top: 24px;
             margin-bottom: 24px;
@@ -491,23 +498,9 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 14px;
-            max-height: 380px;
+            max-height: 340px;
             overflow-y: auto;
             padding-right: 4px;
-        }
-
-        .qsa-grid::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .qsa-grid::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 4px;
-        }
-
-        .qsa-grid::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.12);
-            border-radius: 4px;
         }
 
         .socio-card {
@@ -518,13 +511,6 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            transition: var(--transition);
-        }
-
-        .socio-card:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(6, 182, 212, 0.3);
-            transform: translateY(-1px);
         }
 
         .socio-top {
@@ -571,10 +557,6 @@
             border-radius: 4px;
             margin-top: 3px;
             font-weight: 600;
-            max-width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .socio-meta-list {
@@ -593,22 +575,7 @@
             align-items: center;
         }
 
-        .socio-meta-item span:first-child {
-            color: var(--text-subtle);
-        }
-
-        .socio-empty {
-            grid-column: 1 / -1;
-            padding: 20px;
-            text-align: center;
-            color: var(--text-subtle);
-            font-size: 0.85rem;
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px dashed rgba(255, 255, 255, 0.08);
-            border-radius: var(--radius-sm);
-        }
-
-        /* Step 2 - Documents */
+        /* Step 2 - Upload & Contas Contábeis */
         .step-section {
             display: none;
             margin-top: 32px;
@@ -631,7 +598,7 @@
         .dropzone {
             border: 2px dashed rgba(255, 255, 255, 0.12);
             border-radius: var(--radius-md);
-            padding: 30px 20px;
+            padding: 28px 20px;
             text-align: center;
             background: rgba(31, 41, 61, 0.3);
             cursor: pointer;
@@ -654,8 +621,7 @@
         }
 
         .dropzone-icon {
-            font-size: 2rem;
-            color: var(--primary);
+            font-size: 2.2rem;
             margin-bottom: 8px;
         }
 
@@ -673,7 +639,7 @@
         .dropzone .file-name {
             display: inline-block;
             margin-top: 10px;
-            padding: 4px 10px;
+            padding: 4px 12px;
             background: rgba(6, 182, 212, 0.15);
             color: var(--primary);
             border-radius: var(--radius-sm);
@@ -681,55 +647,214 @@
             font-weight: 600;
         }
 
-        .or-divider {
+        .actions-bar {
             display: flex;
             align-items: center;
-            gap: 16px;
-            margin: 24px 0;
-            color: var(--text-subtle);
-            font-size: 0.82rem;
-        }
-
-        .or-divider::before, .or-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border-color);
-        }
-
-        /* Step 3 - Financials Form */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
             margin-bottom: 24px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.84rem;
-            font-weight: 600;
-            color: var(--text-muted);
+        /* Quadro de Contas Contábeis */
+        .contas-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 20px;
         }
 
-        .input-prefix {
+        .contas-card {
+            background: var(--bg-card-subtle);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: var(--radius-md);
+            padding: 22px;
+        }
+
+        .contas-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 14px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .contas-card-header h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .contas-card-header .badge-total {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: rgba(6, 182, 212, 0.12);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .contas-subgroup {
+            margin-bottom: 16px;
+        }
+
+        .contas-subgroup-title {
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .conta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .conta-label {
+            font-size: 0.84rem;
+            color: var(--text-muted);
+            flex: 1;
+        }
+
+        .conta-input-wrap {
             position: relative;
+            width: 175px;
             display: flex;
             align-items: center;
         }
 
-        .input-prefix span {
+        .conta-input-wrap span {
             position: absolute;
-            left: 14px;
+            left: 10px;
+            font-size: 0.78rem;
             color: var(--text-subtle);
-            font-size: 0.9rem;
             font-weight: 600;
             pointer-events: none;
         }
 
-        .input-prefix input {
-            padding-left: 42px;
+        .conta-input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 10px 8px 32px;
+            color: #fff;
+            font-size: 0.88rem;
+            text-align: right;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .conta-input:focus {
+            border-color: var(--border-focus);
+        }
+
+        .conta-total-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            margin-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .conta-total-row strong {
+            font-size: 0.88rem;
+            color: #fff;
+        }
+
+        .conta-total-row span {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        /* Step 3 - Cruzamento de Indicadores */
+        .indices-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .indice-card {
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .indice-card:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .indice-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .indice-val {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .indice-formula {
+            font-size: 0.72rem;
+            color: var(--text-subtle);
+            margin-bottom: 8px;
+        }
+
+        .indice-status {
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .status-good {
+            color: var(--emerald);
+            background: var(--emerald-bg);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-warn {
+            color: var(--amber);
+            background: var(--amber-bg);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-bad {
+            color: var(--rose);
+            background: var(--rose-bg);
+            border: 1px solid rgba(244, 63, 94, 0.3);
         }
 
         /* Result Section */
@@ -739,7 +864,7 @@
             padding: 32px;
             border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(15, 23, 42, 0.85);
             animation: fadeIn 0.4s ease;
         }
 
@@ -751,21 +876,22 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
             margin-bottom: 28px;
             padding-bottom: 20px;
             border-bottom: 1px solid var(--border-color);
-            flex-wrap: wrap;
-            gap: 16px;
         }
 
         .score-hero {
             display: flex;
             align-items: center;
-            gap: 28px;
-            margin-bottom: 30px;
+            gap: 36px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
         }
 
-        /* Circular Gauge */
+        /* Gauge */
         .gauge-wrap {
             position: relative;
             width: 140px;
@@ -787,11 +913,12 @@
 
         .gauge-circle-val {
             fill: none;
+            stroke: var(--emerald);
             stroke-width: 12;
             stroke-linecap: round;
-            stroke-dasharray: 377;
-            stroke-dashoffset: 377;
-            transition: stroke-dashoffset 1s ease-out, stroke 0.5s ease;
+            stroke-dasharray: 376.99;
+            stroke-dashoffset: 376.99;
+            transition: stroke-dashoffset 1s ease, stroke 0.4s ease;
         }
 
         .gauge-content {
@@ -801,26 +928,29 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-align: center;
         }
 
         .gauge-number {
-            font-size: 2rem;
+            font-size: 1.85rem;
             font-weight: 800;
             color: #fff;
             line-height: 1;
         }
 
         .gauge-label {
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
             margin-top: 4px;
         }
 
         .decision-details {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-width: 280px;
         }
 
         .decision-badge {
@@ -829,10 +959,10 @@
             gap: 8px;
             padding: 8px 16px;
             border-radius: 30px;
-            font-size: 0.88rem;
-            font-weight: 700;
+            font-size: 0.95rem;
+            font-weight: 800;
             letter-spacing: 0.5px;
-            margin-bottom: 12px;
+            width: fit-content;
         }
 
         .decision-badge.APROVADO {
@@ -853,68 +983,76 @@
             border: 1px solid rgba(244, 63, 94, 0.4);
         }
 
-        .limit-box {
-            background: rgba(31, 41, 61, 0.5);
+        .kpi-row-highlight {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .highlight-box {
+            background: rgba(31, 41, 61, 0.45);
             border-radius: var(--radius-sm);
-            padding: 16px 20px;
+            padding: 16px;
             border-left: 4px solid var(--primary);
         }
 
-        .limit-label {
-            font-size: 0.78rem;
+        .highlight-label {
+            font-size: 0.74rem;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .limit-value {
-            font-size: 1.85rem;
+        .highlight-value {
+            font-size: 1.5rem;
             font-weight: 800;
             color: #fff;
             margin-top: 4px;
         }
 
-        /* Indicator Bars */
-        .metrics-breakdown {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
+        /* Diagnóstico */
+        .diagnostico-wrap {
             margin-top: 24px;
             padding-top: 24px;
             border-top: 1px solid var(--border-color);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
-        .metric-card {
-            background: rgba(31, 41, 61, 0.3);
-            border: 1px solid var(--border-color);
+        .diagnostico-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: var(--radius-sm);
-            padding: 16px;
+            padding: 18px;
         }
 
-        .metric-card strong {
-            display: block;
-            font-size: 0.76rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-
-        .metric-card .val {
-            font-size: 1.25rem;
+        .diagnostico-card h4 {
+            font-size: 0.88rem;
             font-weight: 700;
-            color: #fff;
-            margin-bottom: 6px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .metric-status {
-            font-size: 0.74rem;
-            font-weight: 600;
+        .diagnostico-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.84rem;
+            color: #cbd5e1;
         }
 
-        .status-good { color: var(--emerald); }
-        .status-warn { color: var(--amber); }
-        .status-bad { color: var(--rose); }
+        .diagnostico-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.4;
+        }
 
-        /* Carteira View */
+        /* Carteira & Relatórios */
         .carteira-table-wrap {
             overflow-x: auto;
             margin-top: 20px;
@@ -947,11 +1085,10 @@
             background: rgba(255, 255, 255, 0.02);
         }
 
-        /* Relatórios KPIs */
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 18px;
+            gap: 20px;
             margin-bottom: 28px;
         }
 
@@ -960,38 +1097,37 @@
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             padding: 22px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
         .kpi-title {
-            font-size: 0.8rem;
+            font-size: 0.76rem;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 8px;
+            letter-spacing: 1px;
+            font-weight: 700;
         }
 
         .kpi-value {
-            font-size: 1.8rem;
+            font-size: 1.9rem;
             font-weight: 800;
             color: #fff;
+            margin: 6px 0;
         }
 
         .kpi-desc {
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             color: var(--text-subtle);
-            margin-top: 6px;
         }
 
-        /* Toast Notifications */
+        /* Toasts */
         .toast-container {
             position: fixed;
             bottom: 24px;
             right: 24px;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            z-index: 100;
         }
 
         .toast {
@@ -1006,13 +1142,8 @@
             max-width: 380px;
         }
 
-        .toast.error {
-            border-left-color: var(--rose);
-        }
-
-        .toast.success {
-            border-left-color: var(--emerald);
-        }
+        .toast.error { border-left-color: var(--rose); }
+        .toast.success { border-left-color: var(--emerald); }
 
         @keyframes slideUp {
             from { transform: translateY(20px); opacity: 0; }
@@ -1020,64 +1151,35 @@
         }
 
         /* Responsive */
-        @media (max-width: 1024px) {
-            .steps-container, .company-grid, .kpi-grid, .metrics-breakdown {
+        @media (max-width: 1100px) {
+            .steps-container, .indices-grid, .kpi-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            .contas-container, .diagnostico-wrap, .kpi-row-highlight {
+                grid-template-columns: 1fr;
             }
         }
 
         @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                padding: 18px;
-            }
-            .nav-menu {
-                flex-direction: row;
-                overflow-x: auto;
-                margin-top: 14px;
-            }
-            .main-wrapper {
-                padding: 24px 18px 48px;
-            }
-            .steps-container, .form-grid, .upload-grid, .company-grid, .kpi-grid, .metrics-breakdown {
-                grid-template-columns: 1fr;
-            }
-            .input-row {
-                flex-direction: column;
-            }
-            .score-hero {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+            body { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); padding: 18px; }
+            .nav-menu { flex-direction: row; overflow-x: auto; margin-top: 14px; }
+            .main-wrapper { padding: 24px 18px 48px; }
+            .steps-container, .indices-grid, .upload-grid, .company-grid, .kpi-grid { grid-template-columns: 1fr; }
+            .score-hero { flex-direction: column; align-items: flex-start; }
+            .input-row { flex-direction: column; }
         }
 
-        /* Print styles */
+        /* Print */
         @media print {
-            body {
-                background: #fff;
-                color: #000;
+            body { background: #fff; color: #000; }
+            .sidebar, .nav-menu, .btn, .steps-container, .dropzone, .actions-bar, .input-row { display: none !important; }
+            .main-wrapper { padding: 0; max-width: 100%; }
+            .glass-card, .result-panel, .company-panel, .contas-card, .indice-card {
+                background: #fff !important; color: #000 !important; border: 1px solid #ccc !important; box-shadow: none !important;
             }
-            .sidebar, .nav-menu, .btn, .steps-container, .dropzone, .or-divider {
-                display: none !important;
-            }
-            .main-wrapper {
-                padding: 0;
-                max-width: 100%;
-            }
-            .glass-card, .result-panel, .company-panel {
-                background: #fff !important;
-                color: #000 !important;
-                border: 1px solid #ccc !important;
-                box-shadow: none !important;
-            }
-            .gauge-number, .limit-value, h1, h2, h3, .company-name {
-                color: #000 !important;
-            }
+            .gauge-number, .highlight-value, h1, h2, h3, .company-name, .indice-val { color: #000 !important; }
+            .conta-input { border: 1px solid #ccc; color: #000; background: #fff; }
         }
     </style>
 </head>
@@ -1123,7 +1225,7 @@
 
         <div class="sidebar-footer">
             <div class="status-dot"></div>
-            <div class="status-text">Motor IA Online · v1.1</div>
+            <div class="status-text">Motor IA Contábil · v1.2</div>
         </div>
     </aside>
 
@@ -1135,10 +1237,10 @@
             <header class="header-section">
                 <div class="eyebrow">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                    Motor de Decisão de Crédito
+                    Esteira Inteligente de Crédito B2B
                 </div>
-                <h1>Nova Análise Empresarial</h1>
-                <p class="subtitle">Consulte o CNPJ da empresa, integre balanço/DRE e processe o rating financeiro com cálculo automático de score e limite de crédito recomendado.</p>
+                <h1>Análise Contábil & Rating de Crédito</h1>
+                <p class="subtitle">Consulte os dados cadastrais da empresa, faça upload do Balanço Patrimonial e DRE para carregamento automático das contas contábeis, cruzamento de índices e apuração dos KPIs de crédito.</p>
             </header>
 
             <!-- 3-Step Wizard Header -->
@@ -1146,22 +1248,22 @@
                 <div class="step-card active" id="stepCard1">
                     <div class="step-badge" id="stepBadge1">1</div>
                     <div class="step-info">
-                        <b>01 · Empresa</b>
-                        <span>Consulta cadastral CNPJ</span>
+                        <b>01 · Empresa & Sócios</b>
+                        <span>Consulta Receita Federal e QSA</span>
                     </div>
                 </div>
                 <div class="step-card" id="stepCard2">
                     <div class="step-badge" id="stepBadge2">2</div>
                     <div class="step-info">
-                        <b>02 · Documentos</b>
-                        <span>Balanço e DRE (Opcional)</span>
+                        <b>02 · Balanço & DRE</b>
+                        <span>Upload e extração das contas</span>
                     </div>
                 </div>
                 <div class="step-card" id="stepCard3">
                     <div class="step-badge" id="stepBadge3">3</div>
                     <div class="step-info">
-                        <b>03 · Decisão</b>
-                        <span>KPIs, Score e Limite</span>
+                        <b>03 · Índices & Decisão</b>
+                        <span>Cruzamento contábil e Score IA</span>
                     </div>
                 </div>
             </div>
@@ -1172,7 +1274,7 @@
                 <!-- STEP 1: CNPJ -->
                 <div class="card-header">
                     <h2>1. Identificação da Empresa</h2>
-                    <p>Digite o CNPJ para busca automática de dados cadastrais na Receita Federal.</p>
+                    <p>Digite o CNPJ para busca cadastral automática na Receita Federal e verificação do quadro societário.</p>
                 </div>
 
                 <div class="input-row">
@@ -1233,95 +1335,391 @@
                             </div>
                             <span class="qsa-badge-count" id="qsaCountBadge">0 sócios</span>
                         </div>
-                        <div class="qsa-grid" id="qsaList">
-                            <!-- Inserido dinamicamente via JS -->
-                        </div>
+                        <div class="qsa-grid" id="qsaList"></div>
                     </div>
 
                     <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                         <button class="btn btn-primary" id="btnConfirmarEmpresa">
-                            Confirmar Empresa e Avançar
+                            Confirmar Empresa e Avançar para Documentos
                         </button>
                     </div>
                 </div>
 
-                <!-- STEP 2: DOCUMENTS -->
+                <!-- STEP 2: DOCUMENTS & CONTAS CONTÁBEIS -->
                 <div class="step-section" id="stepSectionDocs">
                     <div class="card-header">
-                        <h2>2. Documentos Financeiros (Opcional)</h2>
-                        <p>Anexe o Balanço Patrimonial e a DRE mais recentes ou avance diretamente para inserção dos dados.</p>
+                        <h2>2. Análise de Balanço Patrimonial e DRE</h2>
+                        <p>Faça o upload dos demonstrativos contábeis para extração automática das principais contas patrimoniais e de resultado.</p>
                     </div>
 
+                    <!-- Upload Zones -->
                     <div class="upload-grid">
                         <label class="dropzone" id="dropzoneBalanco">
-                            <input type="file" id="fileBalanco" accept=".pdf,.xls,.xlsx,.csv">
-                            <div class="dropzone-icon">📄</div>
+                            <input type="file" id="fileBalanco" accept=".pdf,.xls,.xlsx,.csv,.txt">
+                            <div class="dropzone-icon">🏛️</div>
                             <h3>Balanço Patrimonial</h3>
-                            <p>PDF, XLS ou XLSX até 10MB</p>
+                            <p>Arraste PDF, Excel (.xlsx, .xls) ou CSV</p>
                             <span class="file-name" id="fileNameBalanco" style="display:none;"></span>
                         </label>
                         <label class="dropzone" id="dropzoneDre">
-                            <input type="file" id="fileDre" accept=".pdf,.xls,.xlsx,.csv">
-                            <div class="dropzone-icon">📊</div>
+                            <input type="file" id="fileDre" accept=".pdf,.xls,.xlsx,.csv,.txt">
+                            <div class="dropzone-icon">📈</div>
                             <h3>Demonstração do Resultado (DRE)</h3>
-                            <p>PDF, XLS ou XLSX até 10MB</p>
+                            <p>Arraste PDF, Excel (.xlsx, .xls) ou CSV</p>
                             <span class="file-name" id="fileNameDre" style="display:none;"></span>
                         </label>
                     </div>
 
-                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 12px;">
-                        <button class="btn btn-primary" id="btnAvancarFinanceiro">
-                            Continuar para Dados Financeiros
+                    <!-- Actions Bar -->
+                    <div class="actions-bar">
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-outline-cyan" id="btnCarregarExemplo">
+                                🚀 Carregar Exemplo Contábil Realista
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="btnLimparContas">
+                                🔄 Limpar Contas
+                            </button>
+                        </div>
+                        <div id="extracaoStatusChip" style="font-size: 0.82rem; color: var(--emerald); font-weight: 600;">
+                            ✓ Contas contábeis sincronizadas
+                        </div>
+                    </div>
+
+                    <!-- Contas Contábeis Extraídas (Balanço & DRE) -->
+                    <div class="contas-container">
+                        
+                        <!-- Coluna 1: Balanço Patrimonial -->
+                        <div class="contas-card">
+                            <div class="contas-card-header">
+                                <h3>
+                                    <span>🏛️</span> Balanço Patrimonial
+                                </h3>
+                                <span class="badge-total" id="badgeAtivoTotal">Ativo Total: R$ 0,00</span>
+                            </div>
+
+                            <div class="contas-subgroup">
+                                <div class="contas-subgroup-title">
+                                    <span>Ativo Circulante</span>
+                                    <span id="subAtivoCirc">R$ 0,00</span>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accDisponibilidades">Disponibilidades / Caixa & Bancos</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accDisponibilidades" class="conta-input" value="350000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accContasReceber">Contas a Receber / Clientes</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accContasReceber" class="conta-input" value="680000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accEstoques">Estoques / Mercadorias</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accEstoques" class="conta-input" value="370000">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="contas-subgroup">
+                                <div class="contas-subgroup-title">
+                                    <span>Ativo Não Circulante</span>
+                                    <span id="subAtivoNaoCirc">R$ 0,00</span>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accRealizavelLp">Realizável a Longo Prazo (RLP)</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accRealizavelLp" class="conta-input" value="120000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accImobilizado">Imobilizado & Intangível</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accImobilizado" class="conta-input" value="480000">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="contas-subgroup">
+                                <div class="contas-subgroup-title">
+                                    <span>Passivo Circulante (Curto Prazo)</span>
+                                    <span id="subPassivoCirc">R$ 0,00</span>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accFornecedores">Fornecedores a Pagar</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accFornecedores" class="conta-input" value="420000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accEmprestimosCp">Empréstimos & Financiamentos CP</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accEmprestimosCp" class="conta-input" value="380000">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="contas-subgroup">
+                                <div class="contas-subgroup-title">
+                                    <span>Passivo Não Circulante & Patrimônio Líquido</span>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accFinanciamentosLp">Financiamentos a Longo Prazo (LP)</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accFinanciamentosLp" class="conta-input" value="280000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accPatrimonioLiquido">Patrimônio Líquido (PL)</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accPatrimonioLiquido" class="conta-input" value="920000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accCapitalSocial">Capital Social Registrado</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accCapitalSocial" class="conta-input" value="500000">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="conta-total-row">
+                                <strong>Total do Ativo Calculado:</strong>
+                                <span id="lblTotalAtivoCalc">R$ 2.000.000,00</span>
+                            </div>
+                        </div>
+
+                        <!-- Coluna 2: Demonstração do Resultado (DRE) -->
+                        <div class="contas-card">
+                            <div class="contas-card-header">
+                                <h3>
+                                    <span>📈</span> DRE - Demonstração do Resultado
+                                </h3>
+                                <span class="badge-total" id="badgeReceitaLiquida">Rec. Líquida: R$ 0,00</span>
+                            </div>
+
+                            <div class="contas-subgroup">
+                                <div class="contas-subgroup-title">
+                                    <span>Faturamento & Deduções</span>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accReceitaBruta">Receita Operacional Bruta</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accReceitaBruta" class="conta-input" value="4800000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accDeducoes">Deduções da Receita / Impostos</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accDeducoes" class="conta-input" value="600000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accReceitaLiquida" style="font-weight: 700; color:#fff;">Receita Operacional Líquida</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accReceitaLiquida" class="conta-input" value="4200000" style="font-weight:700; border-color:var(--primary);">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="contas-subgroup">
+                                <div class="contas-subgroup-title">
+                                    <span>Custos e Despesas Operacionais</span>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accCustosVendas">Custos das Vendas (CPV / CMV)</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accCustosVendas" class="conta-input" value="2600000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accLucroBruto" style="font-weight: 700; color:#fff;">Lucro Bruto</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accLucroBruto" class="conta-input" value="1600000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accDespesasOp">Despesas Operacionais (Adm / Com)</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accDespesasOp" class="conta-input" value="850000">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="contas-subgroup">
+                                <div class="contas-subgroup-title">
+                                    <span>Resultado Operacional & Líquido</span>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accEbitda" style="font-weight: 700; color:var(--emerald);">EBITDA / LAJIDA</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accEbitda" class="conta-input" value="750000" style="font-weight:700; color:var(--emerald);">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accDepreciacao">Depreciação & Amortização</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accDepreciacao" class="conta-input" value="60000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accResultadoFin">Resultado Financeiro Líquido</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accResultadoFin" class="conta-input" value="-90000">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accLucroLiquido" style="font-weight: 700; color:#fff;">Lucro Líquido do Exercício</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accLucroLiquido" class="conta-input" value="480000" style="font-weight:700; border-color:var(--emerald);">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="conta-total-row">
+                                <strong>Margem Líquida DRE:</strong>
+                                <span id="lblMargemLiquidaCalc">11.4%</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 24px;">
+                        <button class="btn btn-primary" id="btnAvancarIndices">
+                            Avançar para Cruzamento de Índices & KPIs de Crédito
                         </button>
                     </div>
                 </div>
 
-                <!-- STEP 3: FINANCIALS FORM -->
+                <!-- STEP 3: CRUZAMENTO DE ÍNDICES & PARECER DE CRÉDITO -->
                 <div class="step-section" id="stepSectionFinancials">
                     <div class="card-header">
-                        <h2>3. Indicadores Financeiros da Análise</h2>
-                        <p>Confirme ou preencha as grandezas econômico-financeiras para apuração do Score de Risco.</p>
+                        <h2>3. Cruzamento de Indicadores & Decisão de Crédito</h2>
+                        <p>Índices calculados em tempo real através do cruzamento analítico das contas do Balanço Patrimonial e DRE.</p>
                     </div>
 
-                    <form id="formCredito">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="inputReceita">Receita Líquida Anual (R$)</label>
-                                <div class="input-prefix">
-                                    <span>R$</span>
-                                    <input type="number" id="inputReceita" class="input-field" value="1200000" min="0" step="1000" required>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="inputLiquidez">Liquidez Corrente (Ativo / Passivo)</label>
-                                <input type="number" id="inputLiquidez" class="input-field" value="1.6" min="0" step="0.01" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="inputMargem">Margem Líquida (%)</label>
-                                <input type="number" id="inputMargem" class="input-field" value="12.5" step="0.1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="inputEndividamento">Endividamento Geral (%)</label>
-                                <input type="number" id="inputEndividamento" class="input-field" value="45.0" min="0" max="100" step="0.1" required>
-                            </div>
+                    <!-- Grid dos Principais Índices Financeiros -->
+                    <div class="indices-grid">
+                        
+                        <!-- 1. Liquidez Corrente -->
+                        <div class="indice-card">
+                            <div class="indice-title">Liquidez Corrente</div>
+                            <div class="indice-val" id="cardLiqCorrente">1.75x</div>
+                            <div class="indice-formula">Ativo Circ. / Passivo Circ.</div>
+                            <span class="indice-status status-good" id="badgeLiqCorrente">Ótimo (≥ 1.5x)</span>
                         </div>
 
-                        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
-                            <button type="submit" class="btn btn-primary" id="btnCalcularAnalise">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                                </svg>
-                                <span>Calcular Análise de Crédito</span>
-                            </button>
-                            <span style="font-size: 0.82rem; color: var(--text-subtle);">O cálculo é processado instantaneamente pela esteira inteligente.</span>
+                        <!-- 2. Liquidez Seca -->
+                        <div class="indice-card">
+                            <div class="indice-title">Liquidez Seca</div>
+                            <div class="indice-val" id="cardLiqSeca">1.29x</div>
+                            <div class="indice-formula">(Ativo Circ. - Estoques) / Pass. Circ.</div>
+                            <span class="indice-status status-good" id="badgeLiqSeca">Saudável (≥ 1.0x)</span>
                         </div>
-                    </form>
+
+                        <!-- 3. Liquidez Geral -->
+                        <div class="indice-card">
+                            <div class="indice-title">Liquidez Geral</div>
+                            <div class="indice-val" id="cardLiqGeral">1.41x</div>
+                            <div class="indice-formula">(AC + RLP) / Exigível Total</div>
+                            <span class="indice-status status-good" id="badgeLiqGeral">Equilibrado</span>
+                        </div>
+
+                        <!-- 4. Endividamento Geral -->
+                        <div class="indice-card">
+                            <div class="indice-title">Endividamento Geral</div>
+                            <div class="indice-val" id="cardEndivGeral">54.0%</div>
+                            <div class="indice-formula">Exigível Total / Ativo Total</div>
+                            <span class="indice-status status-good" id="badgeEndivGeral">Controlado (≤ 65%)</span>
+                        </div>
+
+                        <!-- 5. Perfil da Dívida CP -->
+                        <div class="indice-card">
+                            <div class="indice-title">Perfil da Dívida (CP)</div>
+                            <div class="indice-val" id="cardPerfilDivida">74.1%</div>
+                            <div class="indice-formula">Pass. Circ. / Exigível Total</div>
+                            <span class="indice-status status-warn" id="badgePerfilDivida">Atenção Curto Prazo</span>
+                        </div>
+
+                        <!-- 6. Margem Bruta -->
+                        <div class="indice-card">
+                            <div class="indice-title">Margem Bruta</div>
+                            <div class="indice-val" id="cardMargemBruta">38.1%</div>
+                            <div class="indice-formula">Lucro Bruto / Receita Líquida</div>
+                            <span class="indice-status status-good" id="badgeMargemBruta">Forte</span>
+                        </div>
+
+                        <!-- 7. Margem EBITDA -->
+                        <div class="indice-card">
+                            <div class="indice-title">Margem EBITDA</div>
+                            <div class="indice-val" id="cardMargemEbitda">17.9%</div>
+                            <div class="indice-formula">EBITDA / Receita Líquida</div>
+                            <span class="indice-status status-good" id="badgeMargemEbitda">Excelente</span>
+                        </div>
+
+                        <!-- 8. Margem Líquida -->
+                        <div class="indice-card">
+                            <div class="indice-title">Margem Líquida</div>
+                            <div class="indice-val" id="cardMargemLiquida">11.4%</div>
+                            <div class="indice-formula">Lucro Líquido / Receita Líquida</div>
+                            <span class="indice-status status-good" id="badgeMargemLiquida">Alta Rentabilidade</span>
+                        </div>
+
+                        <!-- 9. Retorno s/ PL (ROE) -->
+                        <div class="indice-card">
+                            <div class="indice-title">Retorno s/ PL (ROE)</div>
+                            <div class="indice-val" id="cardRoe">52.2%</div>
+                            <div class="indice-formula">Lucro Líquido / Patrimônio Líquido</div>
+                            <span class="indice-status status-good" id="badgeRoe">Excelente Retorno</span>
+                        </div>
+
+                        <!-- 10. Retorno s/ Ativo (ROA) -->
+                        <div class="indice-card">
+                            <div class="indice-title">Retorno s/ Ativo (ROA)</div>
+                            <div class="indice-val" id="cardRoa">24.0%</div>
+                            <div class="indice-formula">Lucro Líquido / Ativo Total</div>
+                            <span class="indice-status status-good" id="badgeRoa">Alta Eficiência</span>
+                        </div>
+
+                    </div>
+
+                    <!-- Botão de Processar Decisão -->
+                    <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 10px;">
+                        <button type="button" class="btn btn-primary" id="btnCalcularAnalise">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                            </svg>
+                            <span>Processar Decisão e Parecer de Crédito</span>
+                        </button>
+                        <span style="font-size: 0.82rem; color: var(--text-subtle);">O motor de decisão pondera liquidez, endividamento, rentabilidade e solvência patrimonial.</span>
+                    </div>
 
                     <!-- RESULT PANEL -->
                     <div class="result-panel" id="resultPanel">
                         <div class="result-header">
                             <div>
-                                <h2 style="font-size: 1.28rem;">Parecer Conclusivo de Crédito</h2>
+                                <h2 style="font-size: 1.35rem;">Parecer Conclusivo de Crédito</h2>
                                 <p id="resultSubtitle" style="color: var(--text-muted); font-size: 0.85rem;"></p>
                             </div>
                             <div style="display: flex; gap: 8px;">
@@ -1346,34 +1744,46 @@
                                 </div>
                             </div>
 
-                            <!-- Decision info -->
+                            <!-- Decision Details -->
                             <div class="decision-details">
-                                <div id="resBadge" class="decision-badge APROVADO">APROVADO</div>
-                                <div class="limit-box">
-                                    <div class="limit-label">Limite de Crédito Sugerido</div>
-                                    <div class="limit-value" id="resLimite">R$ 0,00</div>
+                                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                    <div class="decision-badge APROVADO" id="resBadge">✓ CRÉDITO APROVADO</div>
+                                    <span style="font-size: 0.9rem; font-weight: 700; color: #fff; background: rgba(255,255,255,0.06); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-color);" id="resRating">Rating: AA</span>
+                                </div>
+
+                                <div class="kpi-row-highlight">
+                                    <div class="highlight-box">
+                                        <div class="highlight-label">Limite Sugerido</div>
+                                        <div class="highlight-value" id="resLimite">R$ 0,00</div>
+                                    </div>
+                                    <div class="highlight-box" style="border-left-color: var(--emerald);">
+                                        <div class="highlight-label">Capacidade Mensal</div>
+                                        <div class="highlight-value" id="resCapacidade">R$ 0,00</div>
+                                    </div>
+                                    <div class="highlight-box" style="border-left-color: #3b82f6;">
+                                        <div class="highlight-label">Receita Analisada</div>
+                                        <div class="highlight-value" id="resReceitaDRE">R$ 0,00</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- KPIs breakdown -->
-                        <div class="metrics-breakdown">
-                            <div class="metric-card">
-                                <strong>Liquidez Corrente</strong>
-                                <div class="val" id="kpiLiquidez">--</div>
-                                <div class="metric-status" id="kpiLiquidezStatus">--</div>
+                        <!-- Diagnóstico Técnico: Pontos Fortes e Riscos -->
+                        <div class="diagnostico-wrap">
+                            <div class="diagnostico-card">
+                                <h4 style="color: var(--emerald);">
+                                    <span>✓</span> Pontos Fortes e Fundamentos
+                                </h4>
+                                <ul class="diagnostico-list" id="listaPontosFortes"></ul>
                             </div>
-                            <div class="metric-card">
-                                <strong>Margem Líquida</strong>
-                                <div class="val" id="kpiMargem">--</div>
-                                <div class="metric-status" id="kpiMargemStatus">--</div>
-                            </div>
-                            <div class="metric-card">
-                                <strong>Endividamento Geral</strong>
-                                <div class="val" id="kpiEndividamento">--</div>
-                                <div class="metric-status" id="kpiEndividamentoStatus">--</div>
+                            <div class="diagnostico-card">
+                                <h4 style="color: var(--amber);">
+                                    <span>⚠️</span> Pontos de Atenção e Fatores de Risco
+                                </h4>
+                                <ul class="diagnostico-list" id="listaPontosAtencao"></ul>
                             </div>
                         </div>
+
                     </div>
 
                 </div>
@@ -1381,82 +1791,80 @@
             </div>
         </div>
 
-        <!-- VIEW 2: CARTEIRA DE ANÁLISES -->
+        <!-- VIEW 2: CARTEIRA -->
         <div id="viewPortfolio" class="view-content">
             <header class="header-section">
-                <div class="eyebrow">Histórico Geral</div>
-                <h1>Carteira de Análises</h1>
-                <p class="subtitle">Acompanhe todas as propostas e decisões de crédito processadas pelo sistema.</p>
+                <div class="eyebrow">Histórico & Portfólio</div>
+                <h1>Carteira de Empresas Analisadas</h1>
+                <p class="subtitle">Acompanhe as empresas avaliadas, decisões tomadas, ratings de crédito e limites concedidos sincronizados no Supabase.</p>
             </header>
 
             <div class="glass-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-                    <div style="max-width: 360px; width: 100%;">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <h2>Histórico de Pareceres</h2>
+                        <p>Total de decisões registradas na base de dados.</p>
+                    </div>
+                    <div style="max-width: 320px; width: 100%;">
                         <input type="text" id="filtroCarteira" class="input-field" placeholder="Buscar por CNPJ ou Razão Social...">
                     </div>
-                    <button class="btn btn-secondary" onclick="carregarCarteira()">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                        Atualizar
-                    </button>
                 </div>
 
                 <div class="carteira-table-wrap">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>CNPJ / Empresa</th>
+                                <th>Empresa / CNPJ</th>
                                 <th>Score</th>
-                                <th>Classificação</th>
+                                <th>Rating</th>
                                 <th>Decisão</th>
                                 <th>Limite Sugerido</th>
                                 <th>Data</th>
                             </tr>
                         </thead>
                         <tbody id="carteiraTableBody">
-                            <tr>
-                                <td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 30px;">Carregando histórico...</td>
-                            </tr>
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 30px;">Carregando histórico...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW 3: RELATÓRIOS & KPIS -->
+        <!-- VIEW 3: RELATÓRIOS -->
         <div id="viewReports" class="view-content">
             <header class="header-section">
-                <div class="eyebrow">Inteligência de Portfólio</div>
-                <h1>Relatórios & Métricas</h1>
-                <p class="subtitle">Visão executiva agregada de desempenho da esteira de crédito.</p>
+                <div class="eyebrow">Analytics & Inteligência</div>
+                <h1>Relatório Executivo de Crédito</h1>
+                <p class="subtitle">Métricas agregadas da carteira de crédito empresarial, taxa de aprovação e volume total concedido.</p>
             </header>
 
             <div class="kpi-grid">
                 <div class="kpi-card">
-                    <div class="kpi-title">Total de Análises</div>
+                    <div class="kpi-title">Análises Realizadas</div>
                     <div class="kpi-value" id="kpiTotalAnalises">0</div>
-                    <div class="kpi-desc">Propostas submetidas</div>
+                    <div class="kpi-desc">Total acumulado na esteira</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-title">Volume Concedido</div>
-                    <div class="kpi-value" id="kpiVolumeTotal">R$ 0</div>
-                    <div class="kpi-desc">Soma dos limites sugeridos</div>
+                    <div class="kpi-title">Volume Total Aprovado</div>
+                    <div class="kpi-value" id="kpiVolumeTotal">R$ 0,00</div>
+                    <div class="kpi-desc">Limite global recomendado</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-title">Taxa de Aprovação</div>
                     <div class="kpi-value" id="kpiTaxaAprovacao">0%</div>
-                    <div class="kpi-desc">Aprovados + Restrições</div>
+                    <div class="kpi-desc">Índice de aceitação da carteira</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-title">Score Médio</div>
                     <div class="kpi-value" id="kpiScoreMedio">0</div>
-                    <div class="kpi-desc">Pontuação média da carteira</div>
+                    <div class="kpi-desc">Pontuação média ponderada</div>
                 </div>
             </div>
 
             <div class="glass-card">
                 <div class="card-header">
-                    <h2>Distribuição de Decisões</h2>
-                    <p>Status consolidado das análises efetuadas no sistema.</p>
+                    <h2>Distribuição de Decisões de Crédito</h2>
+                    <p>Status consolidado das empresas avaliadas pelo motor inteligente.</p>
                 </div>
                 <div id="distribuicaoStats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;">
                     <div style="background: rgba(16, 185, 129, 0.08); padding: 20px; border-radius: var(--radius-sm); border: 1px solid rgba(16, 185, 129, 0.2);">
@@ -1477,7 +1885,7 @@
 
     </main>
 
-    <!-- Toasts Notifications -->
+    <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
@@ -1524,13 +1932,12 @@
             }
         }
 
-        // CNPJ Masking & Formatting
+        // CNPJ Masking & Auto-Consult
         const cnpjInput = byId('cnpjInput');
         cnpjInput.addEventListener('input', (e) => {
             let v = e.target.value.replace(/\D/g, '');
             if (v.length > 14) v = v.substring(0, 14);
             
-            // Format 00.000.000/0000-00
             if (v.length > 12) {
                 v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{1,2})$/, '$1.$2.$3/$4-$5');
             } else if (v.length > 8) {
@@ -1542,7 +1949,6 @@
             }
             e.target.value = v;
 
-            // Trigger when 14 digits completed
             const rawDigits = v.replace(/\D/g, '');
             if (rawDigits.length === 14 && (!empresaAtual || empresaAtual.cnpj !== rawDigits)) {
                 consultarCnpj();
@@ -1597,6 +2003,12 @@
                 byId('compPorte').textContent = data.porte || 'Não informado';
                 byId('compNatureza').textContent = data.natureza_juridica || 'Não informada';
 
+                // Se houver capital social retornado no CNPJ, alimenta a conta de capital social no Balanço
+                if (data.capital_social && Number(data.capital_social) > 0) {
+                    byId('accCapitalSocial').value = Number(data.capital_social);
+                    recalcularIndicesEmTempoReal();
+                }
+
                 // Renderização do Quadro Societário (QSA)
                 const qsaList = data.qsa || [];
                 const qsaBadge = byId('qsaCountBadge');
@@ -1606,8 +2018,8 @@
 
                 if (qsaList.length === 0) {
                     qsaContainer.innerHTML = `
-                        <div class="socio-empty">
-                            Nenhum sócio adicional informado na base cadastral (Empresa individual, MEI ou sem registro de QSA na Receita Federal).
+                        <div style="grid-column: 1 / -1; padding: 18px; text-align: center; color: var(--text-subtle); font-size: 0.84rem; background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.08); border-radius: var(--radius-sm);">
+                            Nenhum sócio adicional informado na base cadastral (Empresa individual, MEI ou registro único).
                         </div>
                     `;
                 } else {
@@ -1638,7 +2050,7 @@
                                         <span>${entrada}</span>
                                     </div>
                                     <div class="socio-meta-item">
-                                        <span>Faixa etária:</span>
+                                        <span>Faixa:</span>
                                         <span>${faixa}</span>
                                     </div>
                                     ${rep}
@@ -1650,10 +2062,10 @@
 
                 byId('companyPanel').classList.add('visible');
                 byId('stepCard1').classList.add('completed');
-                showToast('Dados cadastrais e societários localizados!', 'success');
+                showToast('Dados cadastrais e societários localizados com sucesso!', 'success');
 
             } catch (err) {
-                showToast('Erro de conexão com o servidor FastAPI.', 'error');
+                showToast('Erro de conexão ao consultar CNPJ.', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Consultar CNPJ</span>`;
@@ -1669,46 +2081,391 @@
             byId('stepSectionDocs').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
 
-        // File drop listeners
-        ['Balanco', 'Dre'].forEach(tipo => {
-            const input = byId(`file${tipo}`);
-            const nameSpan = byId(`fileName${tipo}`);
-            input.addEventListener('change', () => {
-                if (input.files && input.files[0]) {
-                    nameSpan.textContent = `✓ ${input.files[0].name}`;
-                    nameSpan.style.display = 'inline-block';
-                }
+        // ==========================================================
+        // LEITURA, UPLOAD E PARSER DE DOCUMENTOS
+        // ==========================================================
+
+        function lerArquivoTexto(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result || '');
+                reader.onerror = () => resolve('');
+                reader.readAsText(file);
             });
+        }
+
+        async function processarArquivoContabil(file, tipoDoc) {
+            if (!file) return;
+            byId(`fileName${tipoDoc}`).textContent = `✓ ${file.name}`;
+            byId(`fileName${tipoDoc}`).style.display = 'inline-block';
+
+            showToast(`Processando ${file.name}... Extraindo contas contábeis.`, 'info');
+
+            // Leitura de texto local
+            const texto = await lerArquivoTexto(file);
+            if (texto && texto.length > 20) {
+                try {
+                    const res = await fetch(`${apiBase}/api/v1/documentos/extrair`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ texto: texto })
+                    });
+                    if (res.ok) {
+                        const dados = await res.json();
+                        carregarContasNoFormulario(dados.balanco, dados.dre);
+                        showToast(`${dados.total_contas_detectadas || 'Várias'} contas contábeis identificadas e vinculadas!`, 'success');
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Falha na extração de texto via API, usando parser local:', e);
+                }
+            }
+
+            // Upload multipart como fallback
+            const formData = new FormData();
+            if (tipoDoc === 'Balanco') {
+                formData.append('arquivo_balanco', file);
+            } else {
+                formData.append('arquivo_dre', file);
+            }
+
+            try {
+                const res = await fetch(`${apiBase}/api/v1/documentos/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    const dados = await res.json();
+                    carregarContasNoFormulario(dados.balanco, dados.dre);
+                    showToast('Contas contábeis carregadas a partir do arquivo!', 'success');
+                }
+            } catch (err) {
+                showToast('Arquivo recebido. As contas podem ser ajustadas manualmente abaixo.', 'info');
+            }
+        }
+
+        // Listeners dos inputs de arquivo
+        byId('fileBalanco').addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                processarArquivoContabil(e.target.files[0], 'Balanco');
+            }
         });
 
+        byId('fileDre').addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                processarArquivoContabil(e.target.files[0], 'Dre');
+            }
+        });
+
+        // Carregar Exemplo Contábil Realista
+        byId('btnCarregarExemplo').addEventListener('click', () => {
+            const balancoExemplo = {
+                disponibilidades: 420000,
+                contas_a_receber: 860000,
+                estoques: 470000,
+                realizavel_longo_prazo: 150000,
+                imobilizado: 600000,
+                fornecedores: 510000,
+                emprestimos_curto_prazo: 450000,
+                financiamentos_longo_prazo: 340000,
+                patrimonio_liquido: 1200000,
+                capital_social: 700000
+            };
+
+            const dreExemplo = {
+                receita_bruta: 5800000,
+                deducoes: 750000,
+                receita_liquida: 5050000,
+                custos_vendas: 3100000,
+                lucro_bruto: 1950000,
+                despesas_operacionais: 980000,
+                ebitda: 970000,
+                depreciacao_amortizacao: 80000,
+                resultado_financeiro: -110000,
+                lucro_liquido: 590000
+            };
+
+            carregarContasNoFormulario(balancoExemplo, dreExemplo);
+            showToast('Demonstrações contábeis modelo carregadas com sucesso!', 'success');
+        });
+
+        // Limpar Contas
+        byId('btnLimparContas').addEventListener('click', () => {
+            document.querySelectorAll('.conta-input').forEach(input => {
+                input.value = 0;
+            });
+            recalcularIndicesEmTempoReal();
+            showToast('Contas contábeis zeradas.', 'info');
+        });
+
+        function carregarContasNoFormulario(b = {}, d = {}) {
+            if (b) {
+                if (b.disponibilidades) byId('accDisponibilidades').value = b.disponibilidades;
+                if (b.contas_a_receber) byId('accContasReceber').value = b.contas_a_receber;
+                if (b.estoques) byId('accEstoques').value = b.estoques;
+                if (b.realizavel_longo_prazo) byId('accRealizavelLp').value = b.realizavel_longo_prazo;
+                if (b.imobilizado) byId('accImobilizado').value = b.imobilizado;
+                if (b.fornecedores) byId('accFornecedores').value = b.fornecedores;
+                if (b.emprestimos_curto_prazo) byId('accEmprestimosCp').value = b.emprestimos_curto_prazo;
+                if (b.financiamentos_longo_prazo) byId('accFinanciamentosLp').value = b.financiamentos_longo_prazo;
+                if (b.patrimonio_liquido) byId('accPatrimonioLiquido').value = b.patrimonio_liquido;
+                if (b.capital_social) byId('accCapitalSocial').value = b.capital_social;
+            }
+
+            if (d) {
+                if (d.receita_bruta) byId('accReceitaBruta').value = d.receita_bruta;
+                if (d.deducoes) byId('accDeducoes').value = d.deducoes;
+                if (d.receita_liquida) byId('accReceitaLiquida').value = d.receita_liquida;
+                if (d.custos_vendas) byId('accCustosVendas').value = d.custos_vendas;
+                if (d.lucro_bruto) byId('accLucroBruto').value = d.lucro_bruto;
+                if (d.despesas_operacionais) byId('accDespesasOp').value = d.despesas_operacionais;
+                if (d.ebitda) byId('accEbitda').value = d.ebitda;
+                if (d.depreciacao_amortizacao) byId('accDepreciacao').value = d.depreciacao_amortizacao;
+                if (d.resultado_financeiro) byId('accResultadoFin').value = d.resultado_financeiro;
+                if (d.lucro_liquido) byId('accLucroLiquido').value = d.lucro_liquido;
+            }
+
+            recalcularIndicesEmTempoReal();
+        }
+
+        // ==========================================================
+        // CRUZAMENTO CONTÁBIL E RECÁLCULO DINÂMICO DOS ÍNDICES
+        // ==========================================================
+
+        function obterValoresContas() {
+            return {
+                disponibilidades: +byId('accDisponibilidades').value || 0,
+                contas_a_receber: +byId('accContasReceber').value || 0,
+                estoques: +byId('accEstoques').value || 0,
+                realizavel_lp: +byId('accRealizavelLp').value || 0,
+                imobilizado: +byId('accImobilizado').value || 0,
+                fornecedores: +byId('accFornecedores').value || 0,
+                emprestimos_cp: +byId('accEmprestimosCp').value || 0,
+                financiamentos_lp: +byId('accFinanciamentosLp').value || 0,
+                patrimonio_liquido: +byId('accPatrimonioLiquido').value || 0,
+                capital_social: +byId('accCapitalSocial').value || 0,
+                receita_bruta: +byId('accReceitaBruta').value || 0,
+                deducoes: +byId('accDeducoes').value || 0,
+                receita_liquida: +byId('accReceitaLiquida').value || 0,
+                custos_vendas: +byId('accCustosVendas').value || 0,
+                lucro_bruto: +byId('accLucroBruto').value || 0,
+                despesas_op: +byId('accDespesasOp').value || 0,
+                ebitda: +byId('accEbitda').value || 0,
+                depreciacao: +byId('accDepreciacao').value || 0,
+                resultado_fin: +byId('accResultadoFin').value || 0,
+                lucro_liquido: +byId('accLucroLiquido').value || 0
+            };
+        }
+
+        function recalcularIndicesEmTempoReal() {
+            const c = obterValoresContas();
+
+            // Totalizadores do Balanço
+            const ativoCirculante = c.disponibilidades + c.contas_a_receber + c.estoques;
+            const ativoNaoCirculante = c.realizavel_lp + c.imobilizado;
+            const ativoTotal = ativoCirculante + ativoNaoCirculante;
+
+            const passivoCirculante = c.fornecedores + c.emprestimos_cp;
+            const passivoNaoCirculante = c.financiamentos_lp;
+            const exigivelTotal = passivoCirculante + passivoNaoCirculante;
+
+            // Atualiza labels de totais do Balanço
+            byId('subAtivoCirc').textContent = formatMoney(ativoCirculante);
+            byId('subAtivoNaoCirc').textContent = formatMoney(ativoNaoCirculante);
+            byId('subPassivoCirc').textContent = formatMoney(passivoCirculante);
+            byId('badgeAtivoTotal').textContent = `Ativo Total: ${formatMoney(ativoTotal)}`;
+            byId('lblTotalAtivoCalc').textContent = formatMoney(ativoTotal);
+
+            // Totalizadores da DRE
+            let recLiq = c.receita_liquida;
+            if (recLiq === 0 && c.receita_bruta > 0) {
+                recLiq = c.receita_bruta - c.deducoes;
+                byId('accReceitaLiquida').value = recLiq;
+            }
+
+            let lBruto = c.lucro_bruto;
+            if (lBruto === 0 && recLiq > 0 && c.custos_vendas > 0) {
+                lBruto = recLiq - c.custos_vendas;
+                byId('accLucroBruto').value = lBruto;
+            }
+
+            let ebitda = c.ebitda;
+            if (ebitda === 0 && lBruto > 0 && c.despesas_op > 0) {
+                ebitda = lBruto - c.despesas_op;
+                byId('accEbitda').value = ebitda;
+            }
+
+            let lLiq = c.lucro_liquido;
+            if (lLiq === 0 && ebitda > 0) {
+                lLiq = ebitda - c.depreciacao + c.resultado_fin;
+                byId('accLucroLiquido').value = lLiq;
+            }
+
+            byId('badgeReceitaLiquida').textContent = `Rec. Líquida: ${formatMoney(recLiq)}`;
+            const mLiqPerc = recLiq > 0 ? ((lLiq / recLiq) * 100).toFixed(1) : '0.0';
+            byId('lblMargemLiquidaCalc').textContent = `${mLiqPerc}%`;
+
+            // Cruzamentos Contábeis
+            // 1. Liquidez Corrente
+            const liqCorrente = passivoCirculante > 0 ? (ativoCirculante / passivoCirculante) : 1.5;
+            byId('cardLiqCorrente').textContent = `${liqCorrente.toFixed(2)}x`;
+            const badgeLC = byId('badgeLiqCorrente');
+            if (liqCorrente >= 1.5) {
+                badgeLC.textContent = 'Ótimo (≥ 1.5x)';
+                badgeLC.className = 'indice-status status-good';
+            } else if (liqCorrente >= 1.0) {
+                badgeLC.textContent = 'Equilibrado (≥ 1.0x)';
+                badgeLC.className = 'indice-status status-warn';
+            } else {
+                badgeLC.textContent = 'Alerta Crítico (< 1.0x)';
+                badgeLC.className = 'indice-status status-bad';
+            }
+
+            // 2. Liquidez Seca
+            const liqSeca = passivoCirculante > 0 ? (Math.max(0, ativoCirculante - c.estoques) / passivoCirculante) : 1.1;
+            byId('cardLiqSeca').textContent = `${liqSeca.toFixed(2)}x`;
+            const badgeLS = byId('badgeLiqSeca');
+            if (liqSeca >= 1.0) {
+                badgeLS.textContent = 'Saudável (≥ 1.0x)';
+                badgeLS.className = 'indice-status status-good';
+            } else if (liqSeca >= 0.7) {
+                badgeLS.textContent = 'Moderado';
+                badgeLS.className = 'indice-status status-warn';
+            } else {
+                badgeLS.textContent = 'Dependente de Estoques';
+                badgeLS.className = 'indice-status status-bad';
+            }
+
+            // 3. Liquidez Geral
+            const liqGeral = exigivelTotal > 0 ? ((ativoCirculante + c.realizavel_lp) / exigivelTotal) : liqCorrente;
+            byId('cardLiqGeral').textContent = `${liqGeral.toFixed(2)}x`;
+            const badgeLG = byId('badgeLiqGeral');
+            if (liqGeral >= 1.2) {
+                badgeLG.textContent = 'Forte (≥ 1.2x)';
+                badgeLG.className = 'indice-status status-good';
+            } else if (liqGeral >= 0.9) {
+                badgeLG.textContent = 'Adequado';
+                badgeLG.className = 'indice-status status-warn';
+            } else {
+                badgeLG.textContent = 'Vulnerável';
+                badgeLG.className = 'indice-status status-bad';
+            }
+
+            // 4. Endividamento Geral
+            const endivGeral = ativoTotal > 0 ? ((exigivelTotal / ativoTotal) * 100) : 50;
+            byId('cardEndivGeral').textContent = `${endivGeral.toFixed(1)}%`;
+            const badgeEG = byId('badgeEndivGeral');
+            if (endivGeral <= 50) {
+                badgeEG.textContent = 'Conservador (≤ 50%)';
+                badgeEG.className = 'indice-status status-good';
+            } else if (endivGeral <= 70) {
+                badgeEG.textContent = 'Moderado (≤ 70%)';
+                badgeEG.className = 'indice-status status-warn';
+            } else {
+                badgeEG.textContent = 'Alavancado (> 70%)';
+                badgeEG.className = 'indice-status status-bad';
+            }
+
+            // 5. Perfil da Dívida
+            const perfilDivida = exigivelTotal > 0 ? ((passivoCirculante / exigivelTotal) * 100) : 50;
+            byId('cardPerfilDivida').textContent = `${perfilDivida.toFixed(1)}%`;
+            const badgePD = byId('badgePerfilDivida');
+            if (perfilDivida <= 60) {
+                badgePD.textContent = 'Alongado (Boa Estrutura)';
+                badgePD.className = 'indice-status status-good';
+            } else if (perfilDivida <= 75) {
+                badgePD.textContent = 'Concentrado em CP';
+                badgePD.className = 'indice-status status-warn';
+            } else {
+                badgePD.textContent = 'Pressão Imediata (>75%)';
+                badgePD.className = 'indice-status status-bad';
+            }
+
+            // 6. Margens
+            const mBruta = recLiq > 0 ? ((lBruto / recLiq) * 100) : 35;
+            byId('cardMargemBruta').textContent = `${mBruta.toFixed(1)}%`;
+
+            const mEbitda = recLiq > 0 ? ((ebitda / recLiq) * 100) : 18;
+            byId('cardMargemEbitda').textContent = `${mEbitda.toFixed(1)}%`;
+
+            const mLiq = recLiq > 0 ? ((lLiq / recLiq) * 100) : 10;
+            byId('cardMargemLiquida').textContent = `${mLiq.toFixed(1)}%`;
+
+            // 7. ROE e ROA
+            const roe = c.patrimonio_liquido > 0 ? ((lLiq / c.patrimonio_liquido) * 100) : 0;
+            byId('cardRoe').textContent = `${roe.toFixed(1)}%`;
+
+            const roa = ativoTotal > 0 ? ((lLiq / ativoTotal) * 100) : 0;
+            byId('cardRoa').textContent = `${roa.toFixed(1)}%`;
+        }
+
+        // Adiciona listener em todos os inputs das contas contábeis para recalcular na hora
+        document.querySelectorAll('.conta-input').forEach(input => {
+            input.addEventListener('input', recalcularIndicesEmTempoReal);
+        });
+
+        // Inicializa cálculo na carga da página
+        recalcularIndicesEmTempoReal();
+
         // Advance to Step 3
-        byId('btnAvancarFinanceiro').addEventListener('click', () => {
+        byId('btnAvancarIndices').addEventListener('click', () => {
             byId('stepSectionFinancials').classList.add('visible');
             byId('stepCard2').classList.add('completed');
             byId('stepCard3').classList.add('active');
+            recalcularIndicesEmTempoReal();
             byId('stepSectionFinancials').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
 
-        // Credit Analysis Submission
-        byId('formCredito').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // ==========================================================
+        // PROCESSAMENTO DA ANÁLISE DE CRÉDITO E PARECER
+        // ==========================================================
 
-            const receita = +byId('inputReceita').value;
-            const liquidez = +byId('inputLiquidez').value;
-            const margem = +byId('inputMargem').value;
-            const endividamento = +byId('inputEndividamento').value;
-
+        byId('btnCalcularAnalise').addEventListener('click', async () => {
             const btn = byId('btnCalcularAnalise');
             btn.disabled = true;
-            btn.innerHTML = '<span>Calculando Score...</span>';
+            btn.innerHTML = '<span>Processando Decisão com IA...</span>';
+
+            const c = obterValoresContas();
+            const ativoCirculante = c.disponibilidades + c.contas_a_receber + c.estoques;
+            const ativoNaoCirculante = c.realizavel_lp + c.imobilizado;
+            const ativoTotal = ativoCirculante + ativoNaoCirculante;
+            const passivoCirculante = c.fornecedores + c.emprestimos_cp;
+            const passivoNaoCirculante = c.financiamentos_lp;
 
             const payload = {
                 cnpj: empresaAtual ? empresaAtual.cnpj : cnpjInput.value.replace(/\D/g, '') || null,
-                razao_social: empresaAtual ? (empresaAtual.razao_social || empresaAtual.nome_fantasia) : null,
-                receita_liquida_anual: receita,
-                liquidez_corrente: liquidez,
-                margem_liquida: margem,
-                endividamento_geral: endividamento
+                razao_social: empresaAtual ? (empresaAtual.razao_social || empresaAtual.nome_fantasia) : 'Empresa em Análise',
+                balanco: {
+                    ativo_total: ativoTotal,
+                    ativo_circulante: ativoCirculante,
+                    disponibilidades: c.disponibilidades,
+                    contas_a_receber: c.contas_a_receber,
+                    estoques: c.estoques,
+                    ativo_nao_circulante: ativoNaoCirculante,
+                    realizavel_longo_prazo: c.realizavel_lp,
+                    imobilizado: c.imobilizado,
+                    passivo_circulante: passivoCirculante,
+                    fornecedores: c.fornecedores,
+                    emprestimos_curto_prazo: c.emprestimos_cp,
+                    passivo_nao_circulante: passivoNaoCirculante,
+                    financiamentos_longo_prazo: c.financiamentos_lp,
+                    patrimonio_liquido: c.patrimonio_liquido,
+                    capital_social: c.capital_social
+                },
+                dre: {
+                    receita_bruta: c.receita_bruta,
+                    deducoes: c.deducoes,
+                    receita_liquida: c.receita_liquida,
+                    custos_vendas: c.custos_vendas,
+                    lucro_bruto: c.lucro_bruto,
+                    despesas_operacionais: c.despesas_op,
+                    ebitda: c.ebitda,
+                    depreciacao_amortizacao: c.depreciacao,
+                    resultado_financeiro: c.resultado_fin,
+                    impostos: 0,
+                    lucro_liquido: c.lucro_liquido
+                },
+                receita_liquida_anual: c.receita_liquida
             };
 
             try {
@@ -1725,13 +2482,13 @@
                 const data = await res.json();
                 renderResult(data, payload);
                 byId('stepCard3').classList.add('completed');
-                showToast('Análise de crédito calculada com sucesso!', 'success');
+                showToast('Parecer de crédito concluído e registrado!', 'success');
 
             } catch (err) {
                 showToast(`Falha ao calcular análise: ${err.message}`, 'error');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Calcular Análise de Crédito</span>`;
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Processar Decisão e Parecer de Crédito</span>`;
             }
         });
 
@@ -1742,7 +2499,7 @@
 
             // Subtitle
             const empresaNome = payload.razao_social || 'Empresa Analisada';
-            byId('resultSubtitle').textContent = `Parecer emitido para ${empresaNome} em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
+            byId('resultSubtitle').textContent = `Parecer conclusivo emitido para ${empresaNome} em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
 
             // Score Counter
             byId('resScore').textContent = data.score;
@@ -1753,8 +2510,11 @@
             const offset = circumference - (data.score / 1000) * circumference;
             circle.style.strokeDashoffset = offset;
 
-            // Color Gauge and Badge
+            // Decision Badge & Rating
             const badge = byId('resBadge');
+            const resRating = byId('resRating');
+            resRating.textContent = `Rating: ${data.rating || 'N/A'}`;
+
             if (data.status_decisao === 'APROVADO') {
                 circle.style.stroke = 'var(--emerald)';
                 badge.className = 'decision-badge APROVADO';
@@ -1762,54 +2522,34 @@
             } else if (data.status_decisao === 'APROVADO COM RESTRICAO') {
                 circle.style.stroke = 'var(--amber)';
                 badge.className = 'decision-badge APROVADO_COM_RESTRICAO';
-                badge.textContent = '⚠ APROVADO COM RESTRIÇÃO';
+                badge.textContent = '⚠️ APROVADO COM RESTRIÇÃO';
             } else {
                 circle.style.stroke = 'var(--rose)';
                 badge.className = 'decision-badge REPROVADO';
                 badge.textContent = '✕ CRÉDITO REPROVADO';
             }
 
-            // Limit
+            // Highlights
             byId('resLimite').textContent = formatMoney(data.limite_sugerido);
+            byId('resCapacidade').textContent = `${formatMoney(data.capacidade_pagamento_mensal)}/mês`;
+            byId('resReceitaDRE').textContent = formatMoney(payload.receita_liquida_anual || (payload.dre ? payload.dre.receita_liquida : 0));
 
-            // KPIs Breakdown
-            byId('kpiLiquidez').textContent = `${payload.liquidez_corrente.toFixed(2)}x`;
-            const elLiqStatus = byId('kpiLiquidezStatus');
-            if (payload.liquidez_corrente >= 1.5) {
-                elLiqStatus.textContent = 'Ótimo (>= 1.5x)';
-                elLiqStatus.className = 'metric-status status-good';
-            } else if (payload.liquidez_corrente >= 1.0) {
-                elLiqStatus.textContent = 'Adequado (>= 1.0x)';
-                elLiqStatus.className = 'metric-status status-warn';
+            // Diagnóstico de Pontos Fortes e Riscos
+            const ulFortes = byId('listaPontosFortes');
+            const ulAtencao = byId('listaPontosAtencao');
+
+            const fortes = data.pontos_fortes || [];
+            if (fortes.length === 0) {
+                ulFortes.innerHTML = `<li><span>•</span> Nenhuma fortaleza contábil expressiva identificada.</li>`;
             } else {
-                elLiqStatus.textContent = 'Crítico (< 1.0x)';
-                elLiqStatus.className = 'metric-status status-bad';
+                ulFortes.innerHTML = fortes.map(f => `<li><span style="color:var(--emerald);">✓</span> ${f}</li>`).join('');
             }
 
-            byId('kpiMargem').textContent = `${payload.margem_liquida.toFixed(1)}%`;
-            const elMargemStatus = byId('kpiMargemStatus');
-            if (payload.margem_liquida >= 10) {
-                elMargemStatus.textContent = 'Forte (>= 10%)';
-                elMargemStatus.className = 'metric-status status-good';
-            } else if (payload.margem_liquida > 0) {
-                elMargemStatus.textContent = 'Positiva (> 0%)';
-                elMargemStatus.className = 'metric-status status-warn';
+            const atencao = data.pontos_atencao || [];
+            if (atencao.length === 0) {
+                ulAtencao.innerHTML = `<li><span>•</span> Nenhum sinal de estresse financeiro ou risco severo apontado.</li>`;
             } else {
-                elMargemStatus.textContent = 'Negativa (Prejuízo)';
-                elMargemStatus.className = 'metric-status status-bad';
-            }
-
-            byId('kpiEndividamento').textContent = `${payload.endividamento_geral.toFixed(1)}%`;
-            const elEndivStatus = byId('kpiEndividamentoStatus');
-            if (payload.endividamento_geral <= 50) {
-                elEndivStatus.textContent = 'Conservador (<= 50%)';
-                elEndivStatus.className = 'metric-status status-good';
-            } else if (payload.endividamento_geral <= 70) {
-                elEndivStatus.textContent = 'Moderado (<= 70%)';
-                elEndivStatus.className = 'metric-status status-warn';
-            } else {
-                elEndivStatus.textContent = 'Elevado (> 70%)';
-                elEndivStatus.className = 'metric-status status-bad';
+                ulAtencao.innerHTML = atencao.map(a => `<li><span style="color:var(--amber);">⚠️</span> ${a}</li>`).join('');
             }
 
             resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1836,7 +2576,7 @@
         // Load Portfolio (Carteira)
         async function carregarCarteira() {
             const tbody = byId('carteiraTableBody');
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 30px;">Carregando histórico...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 30px;">Carregando histórico do Supabase...</td></tr>`;
 
             try {
                 const res = await fetch(`${apiBase}/api/v1/analises`);
@@ -1862,11 +2602,11 @@
                 return `
                     <tr>
                         <td>
-                            <strong>${item.cnpj || 'Não cadastrado'}</strong>
+                            <strong>${item.cnpj || 'Não informado'}</strong>
                             <div style="font-size:0.75rem; color: var(--text-subtle);">${item.razao_social || 'Empresa'}</div>
                         </td>
                         <td><b style="font-size: 1.05rem;">${item.score}</b> / 1000</td>
-                        <td>${item.classificacao_risco || '-'}</td>
+                        <td><span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-weight: 700;">${item.rating || '-'}</span></td>
                         <td style="${decisaoClass}">${item.status_decisao || '-'}</td>
                         <td><strong>${formatMoney(item.limite_sugerido)}</strong></td>
                         <td style="color: var(--text-subtle); font-size: 0.8rem;">${dt}</td>
