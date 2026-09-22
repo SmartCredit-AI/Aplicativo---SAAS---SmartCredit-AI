@@ -3,6 +3,10 @@
 # ==========================================================
 
 import os
+import json
+import re
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -40,6 +44,22 @@ class AnaliseCreditoInput(BaseModel):
     margem_liquida: float
     endividamento_geral: float
 
+
+def consultar_cnpj_externo(cnpj: str):
+    cnpj_limpo = re.sub(r"\D", "", cnpj)
+    if len(cnpj_limpo) != 14:
+        return None
+
+    request = Request(
+        f"https://brasilapi.com.br/api/cnpj/v1/{cnpj_limpo}",
+        headers={"User-Agent": "SmartCreditAI/1.0"}
+    )
+    try:
+        with urlopen(request, timeout=8) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError):
+        return None
+
 # Rota principal que carrega a interface gráfica
 @app.get("/", response_class=HTMLResponse)
 def carregar_dashboard():
@@ -48,6 +68,33 @@ def carregar_dashboard():
         with open(caminho_html, "r", encoding="utf-8") as file:
             return file.read()
     return "<h1>Erro: Ficheiro index.html não foi encontrado.</h1>"
+
+
+@app.get("/api/v1/empresa/{cnpj}")
+def consultar_empresa(cnpj: str):
+    dados = consultar_cnpj_externo(cnpj)
+    if not dados:
+        return {"encontrada": False, "mensagem": "CNPJ não encontrado ou serviço indisponível."}
+
+    return {
+        "encontrada": True,
+        "cnpj": dados.get("cnpj"),
+        "razao_social": dados.get("razao_social"),
+        "nome_fantasia": dados.get("nome_fantasia"),
+        "situacao": dados.get("descricao_situacao_cadastral"),
+        "endereco": "{0}, {1} - {2}, {3}/{4}".format(
+            dados.get("logradouro") or "",
+            dados.get("numero") or "s/n",
+            dados.get("municipio") or "",
+            dados.get("uf") or "",
+            dados.get("cep") or ""
+        ).strip(" ,-/"),
+        "telefone": dados.get("ddd_telefone_1") or dados.get("ddd_telefone_2"),
+        "email": dados.get("email"),
+        "cnae": dados.get("cnae_fiscal_descricao") or "Não informado",
+        "capital_social": dados.get("capital_social"),
+        "funcionarios": dados.get("quantidade_funcionarios")
+    }
 
 # Rota de análise e gravação na base de dados
 @app.post("/api/v1/decisao/analisar")

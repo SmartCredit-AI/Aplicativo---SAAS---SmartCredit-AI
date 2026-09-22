@@ -3,137 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCreditAI - Dashboard</title>
+    <title>SmartCreditAI - Nova análise</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { display: flex; height: 100vh; background-color: #f4f6f9; color: #333; }
-        
-        /* MENU LATERAL ESTILO RECEBEAI */
-        .sidebar { width: 250px; background-color: #0d1b2a; color: #ffffff; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 0; }
-        .brand { font-size: 1.4rem; font-weight: bold; color: #00b4d8; padding: 0 20px 20px; border-bottom: 1px solid #1b263b; }
-        .menu { list-style: none; margin-top: 20px; }
-        .menu li a { display: flex; align-items: center; gap: 12px; padding: 14px 20px; color: #e0e1dd; text-decoration: none; font-size: 0.95rem; }
-        .menu li.active a, .menu li a:hover { background-color: #1b263b; color: #00b4d8; border-left: 4px solid #00b4d8; }
-        
-        /* CONTEÚDO PRINCIPAL */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
-        .header { padding: 25px 30px 10px; }
-        .header h1 { font-size: 1.6rem; color: #1b263b; }
-        .header p { color: #6c757d; font-size: 0.9rem; margin-top: 4px; }
-        
-        /* CARTÕES INDICADORES */
-        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 20px 30px; }
-        .kpi-card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border-left: 5px solid #00b4d8; }
-        .kpi-card.green { border-left-color: #2ec4b6; }
-        .kpi-card.red { border-left-color: #e63946; }
-        .kpi-card.purple { border-left-color: #7209b7; }
-        .kpi-title { font-size: 0.8rem; font-weight: bold; color: #6c757d; }
-        .kpi-value { font-size: 1.6rem; font-weight: bold; color: #1b263b; margin: 10px 0 5px; }
-        
-        /* FORMULÁRIO DE SIMULAÇÃO */
-        .panel-section { padding: 10px 30px 30px; }
-        .card-panel { background: #fff; border-radius: 10px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
-        .btn-submit { background: #00b4d8; color: #fff; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-submit:hover { background: #0096c7; }
-        .result-box { margin-top: 20px; padding: 15px; background: #eef9ff; border-radius: 6px; border: 1px solid #bee1f4; display: none; }
+        :root { --ink:#17324d; --muted:#6d7d8d; --line:#dbe4e8; --teal:#087f8c; --mint:#e8f5f1; --orange:#e77b35; }
+        * { box-sizing:border-box; margin:0; padding:0; font-family:Georgia,'Times New Roman',serif; }
+        body { min-height:100vh; background:#f5f7f4; color:var(--ink); }
+        .shell { display:flex; min-height:100vh; }
+        .sidebar { width:250px; background:var(--ink); color:#fff; padding:28px 0; }
+        .brand { font-size:1.35rem; font-weight:bold; padding:0 25px 28px; border-bottom:1px solid #355066; }
+        .brand span { color:#7fd1c5; }
+        .menu { list-style:none; margin-top:30px; }
+        .menu a { display:block; padding:14px 25px; color:#d8e5e7; text-decoration:none; font:.9rem Arial,sans-serif; }
+        .menu .active a { color:#fff; background:#244863; border-right:4px solid #7fd1c5; }
+        .main-content { flex:1; max-width:1240px; padding:38px 5vw 60px; }
+        .eyebrow { color:var(--teal); text-transform:uppercase; letter-spacing:1.6px; font:700 .72rem Arial,sans-serif; }
+        h1 { font-size:clamp(2rem,4vw,3.1rem); margin:8px 0; }
+        .header p, .section-heading p, .helper { color:var(--muted); font:1rem Arial,sans-serif; }
+        .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:32px 0 22px; }
+        .step { padding:14px 16px; border-top:3px solid var(--line); color:var(--muted); font:.83rem Arial,sans-serif; }
+        .step.active { border-color:var(--teal); color:var(--ink); font-weight:bold; }
+        .step b { display:block; font-size:1.1rem; margin-bottom:4px; }
+        .card-panel { background:#fff; border:1px solid var(--line); padding:28px; box-shadow:0 14px 35px rgba(23,50,77,.06); }
+        .section-heading { display:flex; justify-content:space-between; gap:20px; align-items:start; margin-bottom:22px; }
+        h2 { font-size:1.45rem; }
+        .section-heading p { font-size:.88rem; margin-top:5px; }
+        .cnpj-row { display:flex; gap:12px; max-width:650px; }
+        input { width:100%; padding:13px 14px; border:1px solid #bccbd0; background:#fbfcfb; color:var(--ink); font:1rem Arial,sans-serif; }
+        .btn-submit { border:0; padding:13px 20px; background:var(--teal); color:#fff; cursor:pointer; font:700 .9rem Arial,sans-serif; white-space:nowrap; }
+        .btn-submit:hover { background:#05636d; }
+        .company-card { display:none; margin-top:26px; padding:20px; background:var(--mint); border-left:4px solid var(--teal); }
+        .company-card.visible, .documents.visible, .financials.visible { display:block; }
+        .company-name { font-size:1.25rem; font-weight:bold; }
+        .company-meta { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-top:18px; font:.86rem Arial,sans-serif; }
+        .company-meta strong { display:block; color:var(--muted); font-size:.72rem; text-transform:uppercase; margin-bottom:4px; }
+        .documents, .financials { display:none; margin-top:22px; }
+        .upload-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+        .upload-slot { border:1px dashed #9bb5b4; padding:24px; text-align:center; background:#fbfdfc; }
+        .upload-slot h3 { font-size:1.05rem; margin-bottom:7px; }
+        .upload-slot input { border:0; padding:12px 0 0; font-size:.82rem; }
+        .form-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:15px; }
+        .form-group label { display:block; margin-bottom:6px; font:700 .8rem Arial,sans-serif; }
+        .action-row { margin-top:22px; display:flex; align-items:center; gap:16px; }
+        .result-box { display:none; margin-top:24px; padding:20px; background:#fff8ec; border-left:4px solid var(--orange); font:.95rem Arial,sans-serif; line-height:1.7; }
+        @media (max-width:760px) { .shell{display:block}.sidebar{width:100%;padding:18px 0}.brand{padding-bottom:15px}.menu{display:flex;margin-top:12px}.menu a{padding:10px 15px;font-size:.84rem}.main-content{padding:28px 18px 45px}.steps,.upload-grid,.form-grid,.company-meta{grid-template-columns:1fr}.cnpj-row,.action-row{flex-direction:column;align-items:stretch} }
     </style>
 </head>
 <body>
-
-    <div class="sidebar">
-        <div>
-            <div class="brand">⚡ SmartCreditAI</div>
-            <ul class="menu">
-                <li class="active"><a href="#">🏠 Dashboard</a></li>
-                <li><a href="#">🔍 Nova Análise</a></li>
-                <li><a href="#">📊 Relatórios</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="main-content">
-        <div class="header">
-            <h1>🏠 Visão Geral da Carteira de Crédito</h1>
-            <p>Resumo de risco corporativo e recomendações de limites em tempo real.</p>
-        </div>
-
-        <div class="kpi-container">
-            <div class="kpi-card">
-                <span class="kpi-title">TOTAL ANALISADO</span>
-                <div class="kpi-value">128 CNPJs</div>
-            </div>
-            <div class="kpi-card green">
-                <span class="kpi-title">LIMITES SUGERIDOS</span>
-                <div class="kpi-value">R$ 1.450.000</div>
-            </div>
-            <div class="kpi-card red">
-                <span class="kpi-title">RISCO ALTO</span>
-                <div class="kpi-value">12 Empresas</div>
-            </div>
-            <div class="kpi-card purple">
-                <span class="kpi-title">TAXA DE APROVAÇÃO</span>
-                <div class="kpi-value">78,5%</div>
-            </div>
-        </div>
-
-        <div class="panel-section">
-            <div class="card-panel">
-                <h2>⚡ Simulação Rápida de Crédito B2B</h2>
-                <form id="creditForm">
-                    <div class="form-group">
-                        <label>Receita Líquida Anual (R$)</label>
-                        <input type="number" id="receita" value="1200000" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Liquidez Corrente</label>
-                        <input type="number" step="0.1" id="liquidez" value="1.6" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Margem Líquida (%)</label>
-                        <input type="number" step="0.1" id="margem" value="12.5" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Endividamento Geral (%)</label>
-                        <input type="number" step="0.1" id="endividamento" value="45.0" required>
-                    </div>
-                    <button type="submit" class="btn-submit">Calcular Decisão de Crédito</button>
-                </form>
-
-                <div id="result" class="result-box"></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        document.getElementById('creditForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                receita_liquida_anual: parseFloat(document.getElementById('receita').value),
-                liquidez_corrente: parseFloat(document.getElementById('liquidez').value),
-                margem_liquida: parseFloat(document.getElementById('margem').value),
-                endividamento_geral: parseFloat(document.getElementById('endividamento').value)
-            };
-
-            const res = await fetch('http://127.0.0.1:8000/api/v1/decisao/analisar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            
-            const resultDiv = document.getElementById('result');
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `
-                <h3>Resultado da Análise:</h3>
-                <p><strong>Score:</strong> ${data.score} / 1000</p>
-                <p><strong>Decisão:</strong> ${data.status_decisao}</p>
-                <p><strong>Classificação de Risco:</strong> ${data.classificacao_risco}</p>
-                <p><strong>Limite Sugerido:</strong> R$ ${data.limite_sugerido.toLocaleString('pt-BR')}</p>
-            `;
-        });
-    </script>
-</body>
-</html>
+<div class="shell">
+    <aside class="sidebar">
+        <div class="brand">Smart<span>Credit</span>AI</div>
+        <ul class="menu"><li class="active"><a href="#">Nova análise</a></li><li><a href="#">Carteira</a></li><li><a href="#">Relatórios</a></li></ul>
+    </aside>
+    <main class="main-content">
+        <header class="header"><div class="eyebrow">Análise de crédito empresarial</div><h1>Nova análise</h1><p>Comece pelo CNPJ. Depois, envie os documentos financeiros para calcular os indicadores, o risco e o limite recomendado.</p></header>
+        <div class="steps"><div class="step active" id="step1"><b>01 · Empresa</b>Consulta cadastral pelo CNPJ</div><div class="step" id="step2"><b>02 · Documentos</b>Balanço patrimonial e DRE</div><div class="step" id="step3"><b>03 · Decisão</b>KPIs, score e limite</div></div>
+        <section class="card-panel">
+            <div class="section-heading"><div><h2>Identificação da empresa</h2><p>Informe apenas o CNPJ para carregar os dados cadastrais.</p></div></div>
+            <div class="cnpj-row"><input id="cnpj" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric"><button class="btn-submit" id="searchButton">Consultar CNPJ</button></div>
+            <div class="company-card" id="companyCard"></div>
+            <div class="documents" id="documents"><div class="section-heading"><div><h2>Documentos financeiros</h2><p>Envie os dois documentos que serão usados na análise.</p></div></div><div class="upload-grid"><div class="upload-slot"><h3>Balanço patrimonial</h3><p class="helper">PDF, XLS ou XLSX</p><input type="file" id="balanco" accept=".pdf,.xls,.xlsx"></div><div class="upload-slot"><h3>Demonstração do resultado (DRE)</h3><p class="helper">PDF, XLS ou XLSX</p><input type="file" id="dre" accept=".pdf,.xls,.xlsx"></div></div></div>
+            <div class="financials" id="financials"><div class="section-heading"><div><h2>Dados financeiros da análise</h2><p>Confirme ou ajuste os valores antes de calcular os KPIs.</p></div></div><form id="creditForm"><div class="form-grid"><div class="form-group"><label>Receita líquida anual (R$)</label><input type="number" id="receita" value="1200000" required></div><div class="form-group"><label>Liquidez corrente</label><input type="number" step="0.1" id="liquidez" value="1.6" required></div><div class="form-group"><label>Margem líquida (%)</label><input type="number" step="0.1" id="margem" value="12.5" required></div><div class="form-group"><label>Endividamento geral (%)</label><input type="number" step="0.1" id="endividamento" value="45" required></div></div><div class="action-row"><button type="submit" class="btn-submit">Calcular análise de crédito</button><span class="helper">O resultado combina os indicadores informados.</span></div></form><div id="result" class="result-box"></div></div>
+        </section>
+    </main>
+</div>
+<script>
+    const byId = (id) => document.getElementById(id);
+    const money = (value) => value ? Number(value).toLocaleString('pt-BR', { style:'currency', currency:'BRL' }) : 'Não informado';
+    byId('searchButton').addEventListener('click', async () => {
+        const cnpj = byId('cnpj').value.replace(/\D/g, '');
+        if (cnpj.length !== 14) return alert('Informe um CNPJ válido com 14 dígitos.');
+        const response = await fetch(`/api/v1/empresa/${cnpj}`);
+        const data = await response.json();
+        if (!data.encontrada) return alert(data.mensagem);
+        byId('companyCard').className = 'company-card visible';
+        byId('companyCard').innerHTML = `<div class="company-name">${data.nome_fantasia || data.razao_social}</div><p>${data.razao_social || ''} · ${data.situacao || 'Situação não informada'}</p><div class="company-meta"><div><strong>Endereço</strong>${data.endereco || 'Não informado'}</div><div><strong>Telefone / e-mail</strong>${data.telefone || 'Não informado'}<br>${data.email || 'Não informado'}</div><div><strong>CNAE / capital social</strong>${data.cnae}<br>${money(data.capital_social)}</div><div><strong>Quadro de funcionários</strong>${data.funcionarios || 'Não informado pela fonte cadastral'}</div></div>`;
+        byId('documents').className = 'documents visible'; byId('step2').className = 'step active';
+    });
+    ['balanco','dre'].forEach((id) => byId(id).addEventListener('change', () => { if (byId('balanco').files.length && byId('dre').files.length) { byId('financials').className = 'financials visible'; byId('step3').className = 'step active'; } }));
+    byId('creditForm').addEventListener('submit', async (event) => { event.preventDefault(); const payload = { receita_liquida_anual:+byId('receita').value, liquidez_corrente:+byId('liquidez').value, margem_liquida:+byId('margem').value, endividamento_geral:+byId('endividamento').value }; const response = await fetch('/api/v1/decisao/analisar', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); const data = await response.json(); const result = byId('result'); result.style.display = 'block'; result.innerHTML = `<strong>Resultado da análise</strong><br>Score: <b>${data.score} / 1000</b> · Risco: <b>${data.classificacao_risco}</b><br>Decisão: <b>${data.status_decisao}</b><br>Limite sugerido: <b>${money(data.limite_sugerido)}</b>`; });
++</script>
++</body>
++</html>
