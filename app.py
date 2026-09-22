@@ -1,5 +1,5 @@
 # ==========================================================
-# SMARTCREDITAI - BACKEND E SERVIDOR VISUAL (app.py)
+# SMARTCREDITAI - BACKEND COM INTEGRAÇÃO SUPABASE (app.py)
 # ==========================================================
 
 import os
@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+from supabase import create_client, Client
 
 app = FastAPI(
     title="SmartCreditAI",
@@ -14,7 +15,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configuração de CORS para permitir requisições no navegador
+# Permite requisições do navegador sem bloqueios
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,14 +24,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Estrutura dos dados enviados para análise de crédito
+# Conexão com o Supabase através de Variáveis de Ambiente
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+
+# Cria o cliente do Supabase apenas se as chaves estiverem configuradas
+supabase: Client = None
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Estrutura dos dados recebidos no formulário
 class AnaliseCreditoInput(BaseModel):
     receita_liquida_anual: float
     liquidez_corrente: float
     margem_liquida: float
     endividamento_geral: float
 
-# Rota principal: Entrega o ficheiro index.html para o navegador
+# Rota principal que carrega a interface gráfica
 @app.get("/", response_class=HTMLResponse)
 def carregar_dashboard():
     caminho_html = os.path.join(os.path.dirname(__file__), "index.html")
@@ -39,12 +49,12 @@ def carregar_dashboard():
             return file.read()
     return "<h1>Erro: Ficheiro index.html não foi encontrado.</h1>"
 
-# Rota de Cálculo da Decisão de Crédito
+# Rota de análise e gravação na base de dados
 @app.post("/api/v1/decisao/analisar")
 def analisar_credito(dados: AnaliseCreditoInput):
     score = 500
 
-    # Regras de Liquidez Corrente
+    # Lógica de cálculo do Score
     if dados.liquidez_corrente >= 1.5:
         score += 150
     elif dados.liquidez_corrente >= 1.0:
@@ -52,7 +62,6 @@ def analisar_credito(dados: AnaliseCreditoInput):
     else:
         score -= 100
 
-    # Regras de Margem Líquida
     if dados.margem_liquida >= 10.0:
         score += 150
     elif dados.margem_liquida > 0:
@@ -60,7 +69,6 @@ def analisar_credito(dados: AnaliseCreditoInput):
     else:
         score -= 150
 
-    # Regras de Endividamento
     if dados.endividamento_geral <= 50.0:
         score += 150
     elif dados.endividamento_geral <= 70.0:
@@ -84,6 +92,22 @@ def analisar_credito(dados: AnaliseCreditoInput):
         risco = "ALTO"
 
     limite = dados.receita_liquida_anual * percentual
+
+    # Gravação no Supabase (se o cliente estiver ativado)
+    if supabase:
+        try:
+            supabase.table("analises_credito").insert({
+                "receita_liquida_anual": dados.receita_liquida_anual,
+                "liquidez_corrente": dados.liquidez_corrente,
+                "margem_liquida": dados.margem_liquida,
+                "endividamento_geral": dados.endividamento_geral,
+                "score": score,
+                "classificacao_risco": risco,
+                "status_decisao": decisao,
+                "limite_sugerido": round(limite, 2)
+            }).execute()
+        except Exception as e:
+            print(f"Erro ao gravar no Supabase: {e}")
 
     return {
         "score": score,
