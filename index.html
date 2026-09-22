@@ -3,100 +3,1669 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCreditAI - Nova análise</title>
+    <title>SmartCreditAI - Inteligência em Análise de Crédito Empresarial</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --ink:#17324d; --muted:#6d7d8d; --line:#dbe4e8; --teal:#087f8c; --mint:#e8f5f1; --orange:#e77b35; }
-        * { box-sizing:border-box; margin:0; padding:0; font-family:Georgia,'Times New Roman',serif; }
-        body { min-height:100vh; background:#f5f7f4; color:var(--ink); }
-        .shell { display:flex; min-height:100vh; }
-        .sidebar { width:250px; background:var(--ink); color:#fff; padding:28px 0; }
-        .brand { font-size:1.35rem; font-weight:bold; padding:0 25px 28px; border-bottom:1px solid #355066; }
-        .brand span { color:#7fd1c5; }
-        .menu { list-style:none; margin-top:30px; }
-        .menu a { display:block; padding:14px 25px; color:#d8e5e7; text-decoration:none; font:.9rem Arial,sans-serif; }
-        .menu .active a { color:#fff; background:#244863; border-right:4px solid #7fd1c5; }
-        .main-content { flex:1; max-width:1240px; padding:38px 5vw 60px; }
-        .eyebrow { color:var(--teal); text-transform:uppercase; letter-spacing:1.6px; font:700 .72rem Arial,sans-serif; }
-        h1 { font-size:clamp(2rem,4vw,3.1rem); margin:8px 0; }
-        .header p, .section-heading p, .helper { color:var(--muted); font:1rem Arial,sans-serif; }
-        .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:32px 0 22px; }
-        .step { padding:14px 16px; border-top:3px solid var(--line); color:var(--muted); font:.83rem Arial,sans-serif; }
-        .step.active { border-color:var(--teal); color:var(--ink); font-weight:bold; }
-        .step b { display:block; font-size:1.1rem; margin-bottom:4px; }
-        .card-panel { background:#fff; border:1px solid var(--line); padding:28px; box-shadow:0 14px 35px rgba(23,50,77,.06); }
-        .section-heading { display:flex; justify-content:space-between; gap:20px; align-items:start; margin-bottom:22px; }
-        h2 { font-size:1.45rem; }
-        .section-heading p { font-size:.88rem; margin-top:5px; }
-        .cnpj-row { display:flex; gap:12px; max-width:650px; }
-        input { width:100%; padding:13px 14px; border:1px solid #bccbd0; background:#fbfcfb; color:var(--ink); font:1rem Arial,sans-serif; }
-        .btn-submit { border:0; padding:13px 20px; background:var(--teal); color:#fff; cursor:pointer; font:700 .9rem Arial,sans-serif; white-space:nowrap; }
-        .btn-submit:hover { background:#05636d; }
-        .company-card { display:none; margin-top:26px; padding:20px; background:var(--mint); border-left:4px solid var(--teal); }
-        .company-card.visible, .documents.visible, .financials.visible { display:block; }
-        .company-name { font-size:1.25rem; font-weight:bold; }
-        .company-meta { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-top:18px; font:.86rem Arial,sans-serif; }
-        .company-meta strong { display:block; color:var(--muted); font-size:.72rem; text-transform:uppercase; margin-bottom:4px; }
-        .confirm-registration { margin-top:20px; }
-        .documents, .financials { display:none; margin-top:22px; }
-        .upload-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
-        .upload-slot { border:1px dashed #9bb5b4; padding:24px; text-align:center; background:#fbfdfc; }
-        .upload-slot h3 { font-size:1.05rem; margin-bottom:7px; }
-        .upload-slot input { border:0; padding:12px 0 0; font-size:.82rem; }
-        .form-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:15px; }
-        .form-group label { display:block; margin-bottom:6px; font:700 .8rem Arial,sans-serif; }
-        .action-row { margin-top:22px; display:flex; align-items:center; gap:16px; }
-        .result-box { display:none; margin-top:24px; padding:20px; background:#fff8ec; border-left:4px solid var(--orange); font:.95rem Arial,sans-serif; line-height:1.7; }
-        @media (max-width:760px) { .shell{display:block}.sidebar{width:100%;padding:18px 0}.brand{padding-bottom:15px}.menu{display:flex;margin-top:12px}.menu a{padding:10px 15px;font-size:.84rem}.main-content{padding:28px 18px 45px}.steps,.upload-grid,.form-grid,.company-meta{grid-template-columns:1fr}.cnpj-row,.action-row{flex-direction:column;align-items:stretch} }
+        :root {
+            --bg-body: #0a0f1d;
+            --bg-surface: #111827;
+            --bg-card: rgba(17, 24, 39, 0.85);
+            --bg-input: #1f293d;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-focus: #06b6d4;
+            --primary: #06b6d4;
+            --primary-hover: #0891b2;
+            --primary-glow: rgba(6, 182, 212, 0.25);
+            --emerald: #10b981;
+            --emerald-bg: rgba(16, 185, 129, 0.12);
+            --amber: #f59e0b;
+            --amber-bg: rgba(245, 158, 11, 0.12);
+            --rose: #f43f5e;
+            --rose-bg: rgba(244, 63, 94, 0.12);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-subtle: #64748b;
+            --sidebar-w: 260px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg-body);
+            color: var(--text-main);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: rgba(15, 23, 42, 0.95);
+            border-right: 1px solid var(--border-color);
+            padding: 28px 18px;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(12px);
+            z-index: 10;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 10px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .brand-name {
+            font-size: 1.22rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #fff;
+        }
+
+        .brand-name span {
+            color: var(--primary);
+        }
+
+        .nav-menu {
+            list-style: none;
+            margin-top: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+        }
+
+        .nav-item a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .nav-item.active a {
+            color: #fff;
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.15), rgba(6, 182, 212, 0.03));
+            border-left: 3px solid var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--emerald);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--emerald);
+        }
+
+        .status-text {
+            font-size: 0.78rem;
+            color: var(--text-subtle);
+        }
+
+        /* Main Workspace */
+        .main-wrapper {
+            flex: 1;
+            padding: 36px 48px 60px;
+            max-width: 1300px;
+            overflow-y: auto;
+        }
+
+        .header-section {
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            max-width: 720px;
+            line-height: 1.5;
+        }
+
+        /* Views */
+        .view-content {
+            display: none;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .view-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Progress Steps */
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .step-card {
+            background: rgba(31, 41, 61, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: var(--transition);
+        }
+
+        .step-card.active {
+            border-color: var(--primary);
+            background: rgba(6, 182, 212, 0.08);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.12);
+        }
+
+        .step-card.completed {
+            border-color: var(--emerald);
+            background: rgba(16, 185, 129, 0.06);
+        }
+
+        .step-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            background: var(--bg-input);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .step-card.active .step-badge {
+            background: var(--primary);
+            color: #042f2e;
+            border-color: var(--primary);
+        }
+
+        .step-card.completed .step-badge {
+            background: var(--emerald);
+            color: #022c22;
+            border-color: var(--emerald);
+        }
+
+        .step-info b {
+            display: block;
+            font-size: 0.92rem;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .step-info span {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Panel Glass Card */
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(16px);
+        }
+
+        .card-header {
+            margin-bottom: 24px;
+        }
+
+        .card-header h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .card-header p {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+        }
+
+        /* Inputs & Actions */
+        .input-row {
+            display: flex;
+            gap: 12px;
+            max-width: 680px;
+        }
+
+        .input-field {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 13px 18px;
+            color: #fff;
+            font-size: 0.98rem;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+            background: rgba(31, 41, 61, 0.9);
+        }
+
+        .btn {
+            border: 0;
+            border-radius: var(--radius-sm);
+            padding: 13px 24px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #0284c7);
+            color: #fff;
+            box-shadow: 0 4px 16px var(--primary-glow);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Company Card */
+        .company-panel {
+            display: none;
+            margin-top: 24px;
+            background: rgba(6, 182, 212, 0.04);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .company-panel.visible {
+            display: block;
+        }
+
+        .company-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .company-name {
+            font-size: 1.32rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .company-legal {
+            font-size: 0.86rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .tag-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tag-status.active {
+            background: var(--emerald-bg);
+            color: var(--emerald);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .tag-status.inactive {
+            background: var(--rose-bg);
+            color: var(--rose);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+        }
+
+        .company-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .company-stat strong {
+            display: block;
+            color: var(--text-subtle);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .company-stat div {
+            font-size: 0.88rem;
+            color: #e2e8f0;
+            line-height: 1.4;
+        }
+
+        /* Step 2 - Documents */
+        .step-section {
+            display: none;
+            margin-top: 32px;
+            padding-top: 28px;
+            border-top: 1px solid var(--border-color);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step-section.visible {
+            display: block;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .dropzone {
+            border: 2px dashed rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius-md);
+            padding: 30px 20px;
+            text-align: center;
+            background: rgba(31, 41, 61, 0.3);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .dropzone:hover {
+            border-color: var(--primary);
+            background: rgba(6, 182, 212, 0.04);
+        }
+
+        .dropzone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .dropzone-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .dropzone h3 {
+            font-size: 1rem;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .dropzone p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .dropzone .file-name {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 10px;
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--primary);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .or-divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 24px 0;
+            color: var(--text-subtle);
+            font-size: 0.82rem;
+        }
+
+        .or-divider::before, .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        /* Step 3 - Financials Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .input-prefix {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-prefix span {
+            position: absolute;
+            left: 14px;
+            color: var(--text-subtle);
+            font-size: 0.9rem;
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        .input-prefix input {
+            padding-left: 42px;
+        }
+
+        /* Result Section */
+        .result-panel {
+            display: none;
+            margin-top: 32px;
+            padding: 32px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.8);
+            animation: fadeIn 0.4s ease;
+        }
+
+        .result-panel.visible {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .score-hero {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            margin-bottom: 30px;
+        }
+
+        /* Circular Gauge */
+        .gauge-wrap {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            flex-shrink: 0;
+        }
+
+        .gauge-svg {
+            transform: rotate(-90deg);
+            width: 140px;
+            height: 140px;
+        }
+
+        .gauge-circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.08);
+            stroke-width: 12;
+        }
+
+        .gauge-circle-val {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 377;
+            stroke-dashoffset: 377;
+            transition: stroke-dashoffset 1s ease-out, stroke 0.5s ease;
+        }
+
+        .gauge-content {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .gauge-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .gauge-label {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .decision-details {
+            flex: 1;
+        }
+
+        .decision-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .decision-badge.APROVADO {
+            background: var(--emerald-bg);
+            color: var(--emerald);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .decision-badge.APROVADO_COM_RESTRICAO {
+            background: var(--amber-bg);
+            color: var(--amber);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .decision-badge.REPROVADO {
+            background: var(--rose-bg);
+            color: var(--rose);
+            border: 1px solid rgba(244, 63, 94, 0.4);
+        }
+
+        .limit-box {
+            background: rgba(31, 41, 61, 0.5);
+            border-radius: var(--radius-sm);
+            padding: 16px 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .limit-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .limit-value {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #fff;
+            margin-top: 4px;
+        }
+
+        /* Indicator Bars */
+        .metrics-breakdown {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .metric-card {
+            background: rgba(31, 41, 61, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+        }
+
+        .metric-card strong {
+            display: block;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .metric-card .val {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .metric-status {
+            font-size: 0.74rem;
+            font-weight: 600;
+        }
+
+        .status-good { color: var(--emerald); }
+        .status-warn { color: var(--amber); }
+        .status-bad { color: var(--rose); }
+
+        /* Carteira View */
+        .carteira-table-wrap {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.88rem;
+        }
+
+        .data-table th {
+            padding: 14px 16px;
+            color: var(--text-subtle);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.74rem;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Relatórios KPIs */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 22px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .kpi-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .kpi-desc {
+            font-size: 0.75rem;
+            color: var(--text-subtle);
+            margin-top: 6px;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .toast {
+            background: #1e293b;
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            font-size: 0.88rem;
+            animation: slideUp 0.3s ease;
+            max-width: 380px;
+        }
+
+        .toast.error {
+            border-left-color: var(--rose);
+        }
+
+        .toast.success {
+            border-left-color: var(--emerald);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .steps-container, .company-grid, .kpi-grid, .metrics-breakdown {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 18px;
+            }
+            .nav-menu {
+                flex-direction: row;
+                overflow-x: auto;
+                margin-top: 14px;
+            }
+            .main-wrapper {
+                padding: 24px 18px 48px;
+            }
+            .steps-container, .form-grid, .upload-grid, .company-grid, .kpi-grid, .metrics-breakdown {
+                grid-template-columns: 1fr;
+            }
+            .input-row {
+                flex-direction: column;
+            }
+            .score-hero {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: #fff;
+                color: #000;
+            }
+            .sidebar, .nav-menu, .btn, .steps-container, .dropzone, .or-divider {
+                display: none !important;
+            }
+            .main-wrapper {
+                padding: 0;
+                max-width: 100%;
+            }
+            .glass-card, .result-panel, .company-panel {
+                background: #fff !important;
+                color: #000 !important;
+                border: 1px solid #ccc !important;
+                box-shadow: none !important;
+            }
+            .gauge-number, .limit-value, h1, h2, h3, .company-name {
+                color: #000 !important;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="shell">
+
+    <!-- Sidebar Navigation -->
     <aside class="sidebar">
-        <div class="brand">Smart<span>Credit</span>AI</div>
-        <ul class="menu"><li class="active"><a href="#">Nova análise</a></li><li><a href="#">Carteira</a></li><li><a href="#">Relatórios</a></li></ul>
+        <div class="brand-container">
+            <div class="brand-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+            </div>
+            <div class="brand-name">Smart<span>Credit</span>AI</div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item active" id="menuAnalysis">
+                <a href="#nova-analise" onclick="switchView('analysis')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                    Nova análise
+                </a>
+            </li>
+            <li class="nav-item" id="menuPortfolio">
+                <a href="#carteira" onclick="switchView('portfolio')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                    </svg>
+                    Carteira
+                </a>
+            </li>
+            <li class="nav-item" id="menuReports">
+                <a href="#relatorios" onclick="switchView('reports')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    Relatórios
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="status-dot"></div>
+            <div class="status-text">Motor IA Online · v1.1</div>
+        </div>
     </aside>
-    <main class="main-content">
-        <header class="header"><div class="eyebrow">Análise de crédito empresarial</div><h1>Nova análise</h1><p>Comece pelo CNPJ. Depois, envie os documentos financeiros para calcular os indicadores, o risco e o limite recomendado.</p></header>
-        <div class="steps"><div class="step active" id="step1"><b>01 · Empresa</b>Consulta cadastral pelo CNPJ</div><div class="step" id="step2"><b>02 · Documentos</b>Balanço patrimonial e DRE</div><div class="step" id="step3"><b>03 · Decisão</b>KPIs, score e limite</div></div>
-        <section class="card-panel">
-            <div class="section-heading"><div><h2>Identificação da empresa</h2><p>Informe apenas o CNPJ para carregar os dados cadastrais.</p></div></div>
-            <div class="cnpj-row"><input id="cnpj" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric"><button class="btn-submit" id="searchButton">Consultar CNPJ</button></div>
-            <div class="company-card" id="companyCard"></div>
-            <div class="documents" id="documents"><div class="section-heading"><div><h2>Documentos financeiros</h2><p>Envie os dois documentos que serão usados na análise.</p></div></div><div class="upload-grid"><div class="upload-slot"><h3>Balanço patrimonial</h3><p class="helper">PDF, XLS ou XLSX</p><input type="file" id="balanco" accept=".pdf,.xls,.xlsx"></div><div class="upload-slot"><h3>Demonstração do resultado (DRE)</h3><p class="helper">PDF, XLS ou XLSX</p><input type="file" id="dre" accept=".pdf,.xls,.xlsx"></div></div></div>
-            <div class="financials" id="financials"><div class="section-heading"><div><h2>Dados financeiros da análise</h2><p>Confirme ou ajuste os valores antes de calcular os KPIs.</p></div></div><form id="creditForm"><div class="form-grid"><div class="form-group"><label>Receita líquida anual (R$)</label><input type="number" id="receita" value="1200000" required></div><div class="form-group"><label>Liquidez corrente</label><input type="number" step="0.1" id="liquidez" value="1.6" required></div><div class="form-group"><label>Margem líquida (%)</label><input type="number" step="0.1" id="margem" value="12.5" required></div><div class="form-group"><label>Endividamento geral (%)</label><input type="number" step="0.1" id="endividamento" value="45" required></div></div><div class="action-row"><button type="submit" class="btn-submit">Calcular análise de crédito</button><span class="helper">O resultado combina os indicadores informados.</span></div></form><div id="result" class="result-box"></div></div>
-        </section>
+
+    <!-- Main Workspace -->
+    <main class="main-wrapper">
+
+        <!-- VIEW 1: NOVA ANÁLISE -->
+        <div id="viewAnalysis" class="view-content active">
+            <header class="header-section">
+                <div class="eyebrow">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Motor de Decisão de Crédito
+                </div>
+                <h1>Nova Análise Empresarial</h1>
+                <p class="subtitle">Consulte o CNPJ da empresa, integre balanço/DRE e processe o rating financeiro com cálculo automático de score e limite de crédito recomendado.</p>
+            </header>
+
+            <!-- 3-Step Wizard Header -->
+            <div class="steps-container">
+                <div class="step-card active" id="stepCard1">
+                    <div class="step-badge" id="stepBadge1">1</div>
+                    <div class="step-info">
+                        <b>01 · Empresa</b>
+                        <span>Consulta cadastral CNPJ</span>
+                    </div>
+                </div>
+                <div class="step-card" id="stepCard2">
+                    <div class="step-badge" id="stepBadge2">2</div>
+                    <div class="step-info">
+                        <b>02 · Documentos</b>
+                        <span>Balanço e DRE (Opcional)</span>
+                    </div>
+                </div>
+                <div class="step-card" id="stepCard3">
+                    <div class="step-badge" id="stepBadge3">3</div>
+                    <div class="step-info">
+                        <b>03 · Decisão</b>
+                        <span>KPIs, Score e Limite</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Glass Card Principal -->
+            <div class="glass-card">
+                
+                <!-- STEP 1: CNPJ -->
+                <div class="card-header">
+                    <h2>1. Identificação da Empresa</h2>
+                    <p>Digite o CNPJ para busca automática de dados cadastrais na Receita Federal.</p>
+                </div>
+
+                <div class="input-row">
+                    <input type="text" id="cnpjInput" class="input-field" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric">
+                    <button class="btn btn-primary" id="btnConsultarCnpj">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <span>Consultar CNPJ</span>
+                    </button>
+                </div>
+
+                <!-- Company Card View -->
+                <div class="company-panel" id="companyPanel">
+                    <div class="company-header-row">
+                        <div>
+                            <div class="company-name" id="compNome">Nome da Empresa</div>
+                            <div class="company-legal" id="compRazao">Razão Social Ltda</div>
+                        </div>
+                        <div id="compStatusBadge" class="tag-status active">Ativa</div>
+                    </div>
+
+                    <div class="company-grid">
+                        <div class="company-stat">
+                            <strong>Endereço</strong>
+                            <div id="compEndereco">-</div>
+                        </div>
+                        <div class="company-stat">
+                            <strong>Contato</strong>
+                            <div id="compContato">-</div>
+                        </div>
+                        <div class="company-stat">
+                            <strong>Atividade Principal (CNAE)</strong>
+                            <div id="compCnae">-</div>
+                        </div>
+                        <div class="company-stat">
+                            <strong>Capital Social</strong>
+                            <div id="compCapital">-</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <button class="btn btn-primary" id="btnConfirmarEmpresa">
+                            Confirmar Empresa e Avançar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: DOCUMENTS -->
+                <div class="step-section" id="stepSectionDocs">
+                    <div class="card-header">
+                        <h2>2. Documentos Financeiros (Opcional)</h2>
+                        <p>Anexe o Balanço Patrimonial e a DRE mais recentes ou avance diretamente para inserção dos dados.</p>
+                    </div>
+
+                    <div class="upload-grid">
+                        <label class="dropzone" id="dropzoneBalanco">
+                            <input type="file" id="fileBalanco" accept=".pdf,.xls,.xlsx,.csv">
+                            <div class="dropzone-icon">📄</div>
+                            <h3>Balanço Patrimonial</h3>
+                            <p>PDF, XLS ou XLSX até 10MB</p>
+                            <span class="file-name" id="fileNameBalanco" style="display:none;"></span>
+                        </label>
+                        <label class="dropzone" id="dropzoneDre">
+                            <input type="file" id="fileDre" accept=".pdf,.xls,.xlsx,.csv">
+                            <div class="dropzone-icon">📊</div>
+                            <h3>Demonstração do Resultado (DRE)</h3>
+                            <p>PDF, XLS ou XLSX até 10MB</p>
+                            <span class="file-name" id="fileNameDre" style="display:none;"></span>
+                        </label>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 12px;">
+                        <button class="btn btn-primary" id="btnAvancarFinanceiro">
+                            Continuar para Dados Financeiros
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: FINANCIALS FORM -->
+                <div class="step-section" id="stepSectionFinancials">
+                    <div class="card-header">
+                        <h2>3. Indicadores Financeiros da Análise</h2>
+                        <p>Confirme ou preencha as grandezas econômico-financeiras para apuração do Score de Risco.</p>
+                    </div>
+
+                    <form id="formCredito">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="inputReceita">Receita Líquida Anual (R$)</label>
+                                <div class="input-prefix">
+                                    <span>R$</span>
+                                    <input type="number" id="inputReceita" class="input-field" value="1200000" min="0" step="1000" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputLiquidez">Liquidez Corrente (Ativo / Passivo)</label>
+                                <input type="number" id="inputLiquidez" class="input-field" value="1.6" min="0" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputMargem">Margem Líquida (%)</label>
+                                <input type="number" id="inputMargem" class="input-field" value="12.5" step="0.1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputEndividamento">Endividamento Geral (%)</label>
+                                <input type="number" id="inputEndividamento" class="input-field" value="45.0" min="0" max="100" step="0.1" required>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+                            <button type="submit" class="btn btn-primary" id="btnCalcularAnalise">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                                </svg>
+                                <span>Calcular Análise de Crédito</span>
+                            </button>
+                            <span style="font-size: 0.82rem; color: var(--text-subtle);">O cálculo é processado instantaneamente pela esteira inteligente.</span>
+                        </div>
+                    </form>
+
+                    <!-- RESULT PANEL -->
+                    <div class="result-panel" id="resultPanel">
+                        <div class="result-header">
+                            <div>
+                                <h2 style="font-size: 1.28rem;">Parecer Conclusivo de Crédito</h2>
+                                <p id="resultSubtitle" style="color: var(--text-muted); font-size: 0.85rem;"></p>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary" onclick="window.print()">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                    Imprimir Parecer
+                                </button>
+                                <button class="btn btn-secondary" onclick="resetForm()">Nova Análise</button>
+                            </div>
+                        </div>
+
+                        <div class="score-hero">
+                            <!-- Gauge -->
+                            <div class="gauge-wrap">
+                                <svg class="gauge-svg" viewBox="0 0 140 140">
+                                    <circle class="gauge-circle-bg" cx="70" cy="70" r="60"/>
+                                    <circle class="gauge-circle-val" id="gaugeValCircle" cx="70" cy="70" r="60"/>
+                                </svg>
+                                <div class="gauge-content">
+                                    <div class="gauge-number" id="resScore">--</div>
+                                    <div class="gauge-label">Score / 1000</div>
+                                </div>
+                            </div>
+
+                            <!-- Decision info -->
+                            <div class="decision-details">
+                                <div id="resBadge" class="decision-badge APROVADO">APROVADO</div>
+                                <div class="limit-box">
+                                    <div class="limit-label">Limite de Crédito Sugerido</div>
+                                    <div class="limit-value" id="resLimite">R$ 0,00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KPIs breakdown -->
+                        <div class="metrics-breakdown">
+                            <div class="metric-card">
+                                <strong>Liquidez Corrente</strong>
+                                <div class="val" id="kpiLiquidez">--</div>
+                                <div class="metric-status" id="kpiLiquidezStatus">--</div>
+                            </div>
+                            <div class="metric-card">
+                                <strong>Margem Líquida</strong>
+                                <div class="val" id="kpiMargem">--</div>
+                                <div class="metric-status" id="kpiMargemStatus">--</div>
+                            </div>
+                            <div class="metric-card">
+                                <strong>Endividamento Geral</strong>
+                                <div class="val" id="kpiEndividamento">--</div>
+                                <div class="metric-status" id="kpiEndividamentoStatus">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- VIEW 2: CARTEIRA DE ANÁLISES -->
+        <div id="viewPortfolio" class="view-content">
+            <header class="header-section">
+                <div class="eyebrow">Histórico Geral</div>
+                <h1>Carteira de Análises</h1>
+                <p class="subtitle">Acompanhe todas as propostas e decisões de crédito processadas pelo sistema.</p>
+            </header>
+
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                    <div style="max-width: 360px; width: 100%;">
+                        <input type="text" id="filtroCarteira" class="input-field" placeholder="Buscar por CNPJ ou Razão Social...">
+                    </div>
+                    <button class="btn btn-secondary" onclick="carregarCarteira()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        Atualizar
+                    </button>
+                </div>
+
+                <div class="carteira-table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>CNPJ / Empresa</th>
+                                <th>Score</th>
+                                <th>Classificação</th>
+                                <th>Decisão</th>
+                                <th>Limite Sugerido</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody id="carteiraTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 30px;">Carregando histórico...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: RELATÓRIOS & KPIS -->
+        <div id="viewReports" class="view-content">
+            <header class="header-section">
+                <div class="eyebrow">Inteligência de Portfólio</div>
+                <h1>Relatórios & Métricas</h1>
+                <p class="subtitle">Visão executiva agregada de desempenho da esteira de crédito.</p>
+            </header>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-title">Total de Análises</div>
+                    <div class="kpi-value" id="kpiTotalAnalises">0</div>
+                    <div class="kpi-desc">Propostas submetidas</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Volume Concedido</div>
+                    <div class="kpi-value" id="kpiVolumeTotal">R$ 0</div>
+                    <div class="kpi-desc">Soma dos limites sugeridos</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Taxa de Aprovação</div>
+                    <div class="kpi-value" id="kpiTaxaAprovacao">0%</div>
+                    <div class="kpi-desc">Aprovados + Restrições</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Score Médio</div>
+                    <div class="kpi-value" id="kpiScoreMedio">0</div>
+                    <div class="kpi-desc">Pontuação média da carteira</div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2>Distribuição de Decisões</h2>
+                    <p>Status consolidado das análises efetuadas no sistema.</p>
+                </div>
+                <div id="distribuicaoStats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;">
+                    <div style="background: rgba(16, 185, 129, 0.08); padding: 20px; border-radius: var(--radius-sm); border: 1px solid rgba(16, 185, 129, 0.2);">
+                        <div style="font-size: 0.8rem; color: var(--emerald); font-weight: 700; text-transform: uppercase;">Aprovados</div>
+                        <div id="statAprovados" style="font-size: 2rem; font-weight: 800; color: #fff; margin-top: 4px;">0</div>
+                    </div>
+                    <div style="background: rgba(245, 158, 11, 0.08); padding: 20px; border-radius: var(--radius-sm); border: 1px solid rgba(245, 158, 11, 0.2);">
+                        <div style="font-size: 0.8rem; color: var(--amber); font-weight: 700; text-transform: uppercase;">Com Restrição</div>
+                        <div id="statRestricoes" style="font-size: 2rem; font-weight: 800; color: #fff; margin-top: 4px;">0</div>
+                    </div>
+                    <div style="background: rgba(244, 63, 94, 0.08); padding: 20px; border-radius: var(--radius-sm); border: 1px solid rgba(244, 63, 94, 0.2);">
+                        <div style="font-size: 0.8rem; color: var(--rose); font-weight: 700; text-transform: uppercase;">Reprovados</div>
+                        <div id="statReprovados" style="font-size: 2rem; font-weight: 800; color: #fff; margin-top: 4px;">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
-</div>
-<script>
-    const byId = (id) => document.getElementById(id);
-    const money = (value) => value ? Number(value).toLocaleString('pt-BR', { style:'currency', currency:'BRL' }) : 'Não informado';
-    const apiBase = window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '';
-    let ultimoCnpjConsultado = '';
-    const showLookupError = (message) => { byId('companyCard').className = 'company-card visible'; byId('companyCard').innerHTML = `<strong>Não foi possível consultar o CNPJ.</strong><p>${message}</p>`; };
-    const consultarCnpj = async () => {
-        const cnpj = byId('cnpj').value.replace(/\D/g, '');
-        if (cnpj.length !== 14) return alert('Informe um CNPJ válido com 14 dígitos.');
-        byId('searchButton').disabled = true; byId('searchButton').textContent = 'Consultando...';
-        try {
-            const response = await fetch(`${apiBase}/api/v1/empresa/${cnpj}`);
-            const data = await response.json();
-            if (!response.ok || !data.encontrada) return showLookupError(data.mensagem || `O servidor respondeu com status ${response.status}.`);
-            byId('companyCard').className = 'company-card visible';
-            byId('companyCard').innerHTML = `<div class="company-name">${data.nome_fantasia || data.razao_social}</div><p>${data.razao_social || ''} · ${data.situacao || 'Situação não informada'}</p><div class="company-meta"><div><strong>Endereço</strong>${data.endereco || 'Não informado'}</div><div><strong>Telefone / e-mail</strong>${data.telefone || 'Não informado'}<br>${data.email || 'Não informado'}</div><div><strong>CNAE / capital social</strong>${data.cnae}<br>${money(data.capital_social)}</div><div><strong>Quadro de funcionários</strong>${data.funcionarios || 'Não informado pela fonte cadastral'}</div></div><button class="btn-submit confirm-registration" id="confirmRegistration">Confirmar cadastro da empresa</button>`;
-            byId('documents').className = 'documents'; byId('financials').className = 'financials'; byId('step2').className = 'step'; byId('step3').className = 'step';
-            byId('confirmRegistration').addEventListener('click', () => { byId('documents').className = 'documents visible'; byId('step2').className = 'step active'; byId('confirmRegistration').textContent = 'Cadastro confirmado'; byId('confirmRegistration').disabled = true; });
-        } catch (error) { showLookupError('Verifique se o FastAPI está em execução ou se a aplicação foi publicada corretamente.'); }
-        finally { byId('searchButton').disabled = false; byId('searchButton').textContent = 'Consultar CNPJ'; }
-    };
-    byId('searchButton').addEventListener('click', consultarCnpj);
-    byId('cnpj').addEventListener('input', () => {
-        const cnpj = byId('cnpj').value.replace(/\D/g, '');
-        if (cnpj.length < 14) { ultimoCnpjConsultado = ''; return; }
-        if (cnpj.length === 14 && cnpj !== ultimoCnpjConsultado) { ultimoCnpjConsultado = cnpj; consultarCnpj(); }
-    });
-    byId('cnpj').addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); consultarCnpj(); } });
-    ['balanco','dre'].forEach((id) => byId(id).addEventListener('change', () => { if (byId('balanco').files.length && byId('dre').files.length) { byId('financials').className = 'financials visible'; byId('step3').className = 'step active'; } }));
-    byId('creditForm').addEventListener('submit', async (event) => { event.preventDefault(); const payload = { receita_liquida_anual:+byId('receita').value, liquidez_corrente:+byId('liquidez').value, margem_liquida:+byId('margem').value, endividamento_geral:+byId('endividamento').value }; const response = await fetch('/api/v1/decisao/analisar', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); const data = await response.json(); const result = byId('result'); result.style.display = 'block'; result.innerHTML = `<strong>Resultado da análise</strong><br>Score: <b>${data.score} / 1000</b> · Risco: <b>${data.classificacao_risco}</b><br>Decisão: <b>${data.status_decisao}</b><br>Limite sugerido: <b>${money(data.limite_sugerido)}</b>`; });
-+</script>
-+</body>
-+</html>
+
+    <!-- Toasts Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // Utilities
+        const byId = (id) => document.getElementById(id);
+        const formatMoney = (val) => Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const apiBase = window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '';
+
+        // Application State
+        let empresaAtual = null;
+        let analisesCarteiraCache = [];
+
+        // Toast Helper
+        function showToast(message, type = 'info') {
+            const container = byId('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // View Switcher
+        function switchView(viewName) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.view-content').forEach(el => el.classList.remove('active'));
+
+            if (viewName === 'analysis') {
+                byId('menuAnalysis').classList.add('active');
+                byId('viewAnalysis').classList.add('active');
+            } else if (viewName === 'portfolio') {
+                byId('menuPortfolio').classList.add('active');
+                byId('viewPortfolio').classList.add('active');
+                carregarCarteira();
+            } else if (viewName === 'reports') {
+                byId('menuReports').classList.add('active');
+                byId('viewReports').classList.add('active');
+                carregarMetricas();
+            }
+        }
+
+        // CNPJ Masking & Formatting
+        const cnpjInput = byId('cnpjInput');
+        cnpjInput.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length > 14) v = v.substring(0, 14);
+            
+            // Format 00.000.000/0000-00
+            if (v.length > 12) {
+                v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{1,2})$/, '$1.$2.$3/$4-$5');
+            } else if (v.length > 8) {
+                v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{1,4})$/, '$1.$2.$3/$4');
+            } else if (v.length > 5) {
+                v = v.replace(/^(\d{2})(\d{3})(\d{1,3})$/, '$1.$2.$3');
+            } else if (v.length > 2) {
+                v = v.replace(/^(\d{2})(\d{1,3})$/, '$1.$2');
+            }
+            e.target.value = v;
+
+            // Trigger when 14 digits completed
+            const rawDigits = v.replace(/\D/g, '');
+            if (rawDigits.length === 14 && (!empresaAtual || empresaAtual.cnpj !== rawDigits)) {
+                consultarCnpj();
+            }
+        });
+
+        cnpjInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                consultarCnpj();
+            }
+        });
+
+        // Query CNPJ
+        async function consultarCnpj() {
+            const rawCnpj = cnpjInput.value.replace(/\D/g, '');
+            if (rawCnpj.length !== 14) {
+                showToast('Informe um CNPJ válido com 14 dígitos.', 'error');
+                return;
+            }
+
+            const btn = byId('btnConsultarCnpj');
+            btn.disabled = true;
+            btn.innerHTML = '<span>Consultando...</span>';
+
+            try {
+                const res = await fetch(`${apiBase}/api/v1/empresa/${rawCnpj}`);
+                const data = await res.json();
+
+                if (!res.ok || !data.encontrada) {
+                    showToast(data.mensagem || 'Empresa não encontrada ou serviço indisponível.', 'error');
+                    byId('companyPanel').classList.remove('visible');
+                    return;
+                }
+
+                empresaAtual = data;
+                byId('compNome').textContent = data.nome_fantasia || data.razao_social;
+                byId('compRazao').textContent = `${data.razao_social} · CNPJ: ${cnpjInput.value}`;
+                
+                const statusBadge = byId('compStatusBadge');
+                statusBadge.textContent = data.situacao || 'Ativa';
+                if ((data.situacao || '').toUpperCase().includes('ATIVA')) {
+                    statusBadge.className = 'tag-status active';
+                } else {
+                    statusBadge.className = 'tag-status inactive';
+                }
+
+                byId('compEndereco').textContent = data.endereco || 'Não informado';
+                byId('compContato').innerHTML = `${data.telefone || 'Sem telefone'}<br>${data.email || 'Sem e-mail'}`;
+                byId('compCnae').textContent = data.cnae;
+                byId('compCapital').textContent = data.capital_social ? formatMoney(data.capital_social) : 'Não informado';
+
+                byId('companyPanel').classList.add('visible');
+                byId('stepCard1').classList.add('completed');
+                showToast('Dados cadastrais localizados com sucesso!', 'success');
+
+            } catch (err) {
+                showToast('Erro de conexão com o servidor FastAPI.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Consultar CNPJ</span>`;
+            }
+        }
+
+        byId('btnConsultarCnpj').addEventListener('click', consultarCnpj);
+
+        // Advance to Step 2
+        byId('btnConfirmarEmpresa').addEventListener('click', () => {
+            byId('stepSectionDocs').classList.add('visible');
+            byId('stepCard2').classList.add('active');
+            byId('stepSectionDocs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // File drop listeners
+        ['Balanco', 'Dre'].forEach(tipo => {
+            const input = byId(`file${tipo}`);
+            const nameSpan = byId(`fileName${tipo}`);
+            input.addEventListener('change', () => {
+                if (input.files && input.files[0]) {
+                    nameSpan.textContent = `✓ ${input.files[0].name}`;
+                    nameSpan.style.display = 'inline-block';
+                }
+            });
+        });
+
+        // Advance to Step 3
+        byId('btnAvancarFinanceiro').addEventListener('click', () => {
+            byId('stepSectionFinancials').classList.add('visible');
+            byId('stepCard2').classList.add('completed');
+            byId('stepCard3').classList.add('active');
+            byId('stepSectionFinancials').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // Credit Analysis Submission
+        byId('formCredito').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const receita = +byId('inputReceita').value;
+            const liquidez = +byId('inputLiquidez').value;
+            const margem = +byId('inputMargem').value;
+            const endividamento = +byId('inputEndividamento').value;
+
+            const btn = byId('btnCalcularAnalise');
+            btn.disabled = true;
+            btn.innerHTML = '<span>Calculando Score...</span>';
+
+            const payload = {
+                cnpj: empresaAtual ? empresaAtual.cnpj : cnpjInput.value.replace(/\D/g, '') || null,
+                razao_social: empresaAtual ? (empresaAtual.razao_social || empresaAtual.nome_fantasia) : null,
+                receita_liquida_anual: receita,
+                liquidez_corrente: liquidez,
+                margem_liquida: margem,
+                endividamento_geral: endividamento
+            };
+
+            try {
+                const res = await fetch(`${apiBase}/api/v1/decisao/analisar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    throw new Error(`Erro do servidor (${res.status})`);
+                }
+
+                const data = await res.json();
+                renderResult(data, payload);
+                byId('stepCard3').classList.add('completed');
+                showToast('Análise de crédito calculada com sucesso!', 'success');
+
+            } catch (err) {
+                showToast(`Falha ao calcular análise: ${err.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Calcular Análise de Crédito</span>`;
+            }
+        });
+
+        // Render Decision Result
+        function renderResult(data, payload) {
+            const resultPanel = byId('resultPanel');
+            resultPanel.classList.add('visible');
+
+            // Subtitle
+            const empresaNome = payload.razao_social || 'Empresa Analisada';
+            byId('resultSubtitle').textContent = `Parecer emitido para ${empresaNome} em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
+
+            // Score Counter
+            byId('resScore').textContent = data.score;
+
+            // Animated Gauge
+            const circle = byId('gaugeValCircle');
+            const circumference = 2 * Math.PI * 60; // 376.99
+            const offset = circumference - (data.score / 1000) * circumference;
+            circle.style.strokeDashoffset = offset;
+
+            // Color Gauge and Badge
+            const badge = byId('resBadge');
+            if (data.status_decisao === 'APROVADO') {
+                circle.style.stroke = 'var(--emerald)';
+                badge.className = 'decision-badge APROVADO';
+                badge.textContent = '✓ CRÉDITO APROVADO';
+            } else if (data.status_decisao === 'APROVADO COM RESTRICAO') {
+                circle.style.stroke = 'var(--amber)';
+                badge.className = 'decision-badge APROVADO_COM_RESTRICAO';
+                badge.textContent = '⚠ APROVADO COM RESTRIÇÃO';
+            } else {
+                circle.style.stroke = 'var(--rose)';
+                badge.className = 'decision-badge REPROVADO';
+                badge.textContent = '✕ CRÉDITO REPROVADO';
+            }
+
+            // Limit
+            byId('resLimite').textContent = formatMoney(data.limite_sugerido);
+
+            // KPIs Breakdown
+            byId('kpiLiquidez').textContent = `${payload.liquidez_corrente.toFixed(2)}x`;
+            const elLiqStatus = byId('kpiLiquidezStatus');
+            if (payload.liquidez_corrente >= 1.5) {
+                elLiqStatus.textContent = 'Ótimo (>= 1.5x)';
+                elLiqStatus.className = 'metric-status status-good';
+            } else if (payload.liquidez_corrente >= 1.0) {
+                elLiqStatus.textContent = 'Adequado (>= 1.0x)';
+                elLiqStatus.className = 'metric-status status-warn';
+            } else {
+                elLiqStatus.textContent = 'Crítico (< 1.0x)';
+                elLiqStatus.className = 'metric-status status-bad';
+            }
+
+            byId('kpiMargem').textContent = `${payload.margem_liquida.toFixed(1)}%`;
+            const elMargemStatus = byId('kpiMargemStatus');
+            if (payload.margem_liquida >= 10) {
+                elMargemStatus.textContent = 'Forte (>= 10%)';
+                elMargemStatus.className = 'metric-status status-good';
+            } else if (payload.margem_liquida > 0) {
+                elMargemStatus.textContent = 'Positiva (> 0%)';
+                elMargemStatus.className = 'metric-status status-warn';
+            } else {
+                elMargemStatus.textContent = 'Negativa (Prejuízo)';
+                elMargemStatus.className = 'metric-status status-bad';
+            }
+
+            byId('kpiEndividamento').textContent = `${payload.endividamento_geral.toFixed(1)}%`;
+            const elEndivStatus = byId('kpiEndividamentoStatus');
+            if (payload.endividamento_geral <= 50) {
+                elEndivStatus.textContent = 'Conservador (<= 50%)';
+                elEndivStatus.className = 'metric-status status-good';
+            } else if (payload.endividamento_geral <= 70) {
+                elEndivStatus.textContent = 'Moderado (<= 70%)';
+                elEndivStatus.className = 'metric-status status-warn';
+            } else {
+                elEndivStatus.textContent = 'Elevado (> 70%)';
+                elEndivStatus.className = 'metric-status status-bad';
+            }
+
+            resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Reset wizard
+        function resetForm() {
+            empresaAtual = null;
+            cnpjInput.value = '';
+            byId('companyPanel').classList.remove('visible');
+            byId('stepSectionDocs').classList.remove('visible');
+            byId('stepSectionFinancials').classList.remove('visible');
+            byId('resultPanel').classList.remove('visible');
+            byId('fileNameBalanco').style.display = 'none';
+            byId('fileNameDre').style.display = 'none';
+            byId('stepCard1').className = 'step-card active';
+            byId('stepCard2').className = 'step-card';
+            byId('stepCard3').className = 'step-card';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Load Portfolio (Carteira)
+        async function carregarCarteira() {
+            const tbody = byId('carteiraTableBody');
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 30px;">Carregando histórico...</td></tr>`;
+
+            try {
+                const res = await fetch(`${apiBase}/api/v1/analises`);
+                const data = await res.json();
+                analisesCarteiraCache = data.analises || [];
+                renderCarteiraTable(analisesCarteiraCache);
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--rose); padding: 30px;">Falha ao obter histórico de análises.</td></tr>`;
+            }
+        }
+
+        function renderCarteiraTable(lista) {
+            const tbody = byId('carteiraTableBody');
+            if (!lista || lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 30px;">Nenhuma análise realizada até o momento.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = lista.map(item => {
+                const dt = item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '-';
+                const decisaoClass = (item.status_decisao || '').includes('REPROVADO') ? 'color: var(--rose); font-weight:700;' : ((item.status_decisao || '').includes('RESTRICAO') ? 'color: var(--amber); font-weight:700;' : 'color: var(--emerald); font-weight:700;');
+
+                return `
+                    <tr>
+                        <td>
+                            <strong>${item.cnpj || 'Não cadastrado'}</strong>
+                            <div style="font-size:0.75rem; color: var(--text-subtle);">${item.razao_social || 'Empresa'}</div>
+                        </td>
+                        <td><b style="font-size: 1.05rem;">${item.score}</b> / 1000</td>
+                        <td>${item.classificacao_risco || '-'}</td>
+                        <td style="${decisaoClass}">${item.status_decisao || '-'}</td>
+                        <td><strong>${formatMoney(item.limite_sugerido)}</strong></td>
+                        <td style="color: var(--text-subtle); font-size: 0.8rem;">${dt}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Filter Portfolio
+        byId('filtroCarteira').addEventListener('input', (e) => {
+            const termo = e.target.value.toLowerCase();
+            const filtradas = analisesCarteiraCache.filter(item => {
+                const cnpj = (item.cnpj || '').toLowerCase();
+                const razao = (item.razao_social || '').toLowerCase();
+                return cnpj.includes(termo) || razao.includes(termo);
+            });
+            renderCarteiraTable(filtradas);
+        });
+
+        // Load Metrics (Relatórios)
+        async function carregarMetricas() {
+            try {
+                const res = await fetch(`${apiBase}/api/v1/metricas`);
+                const m = await res.json();
+
+                byId('kpiTotalAnalises').textContent = m.total_analises;
+                byId('kpiVolumeTotal').textContent = formatMoney(m.volume_credito_total);
+                byId('kpiTaxaAprovacao').textContent = `${m.taxa_aprovacao}%`;
+                byId('kpiScoreMedio').textContent = m.score_medio;
+
+                byId('statAprovados').textContent = m.aprovados;
+                byId('statRestricoes').textContent = m.restricoes;
+                byId('statReprovados').textContent = m.reprovados;
+            } catch (err) {
+                showToast('Não foi possível carregar as métricas do painel.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
