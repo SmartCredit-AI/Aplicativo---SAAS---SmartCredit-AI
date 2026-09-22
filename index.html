@@ -36,6 +36,7 @@
         .company-name { font-size:1.25rem; font-weight:bold; }
         .company-meta { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-top:18px; font:.86rem Arial,sans-serif; }
         .company-meta strong { display:block; color:var(--muted); font-size:.72rem; text-transform:uppercase; margin-bottom:4px; }
+        .confirm-registration { margin-top:20px; }
         .documents, .financials { display:none; margin-top:22px; }
         .upload-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
         .upload-slot { border:1px dashed #9bb5b4; padding:24px; text-align:center; background:#fbfdfc; }
@@ -81,8 +82,9 @@
             const data = await response.json();
             if (!response.ok || !data.encontrada) return showLookupError(data.mensagem || `O servidor respondeu com status ${response.status}.`);
             byId('companyCard').className = 'company-card visible';
-            byId('companyCard').innerHTML = `<div class="company-name">${data.nome_fantasia || data.razao_social}</div><p>${data.razao_social || ''} · ${data.situacao || 'Situação não informada'}</p><div class="company-meta"><div><strong>Endereço</strong>${data.endereco || 'Não informado'}</div><div><strong>Telefone / e-mail</strong>${data.telefone || 'Não informado'}<br>${data.email || 'Não informado'}</div><div><strong>CNAE / capital social</strong>${data.cnae}<br>${money(data.capital_social)}</div><div><strong>Quadro de funcionários</strong>${data.funcionarios || 'Não informado pela fonte cadastral'}</div></div>`;
-            byId('documents').className = 'documents visible'; byId('step2').className = 'step active';
+            byId('companyCard').innerHTML = `<div class="company-name">${data.nome_fantasia || data.razao_social}</div><p>${data.razao_social || ''} · ${data.situacao || 'Situação não informada'}</p><div class="company-meta"><div><strong>Endereço</strong>${data.endereco || 'Não informado'}</div><div><strong>Telefone / e-mail</strong>${data.telefone || 'Não informado'}<br>${data.email || 'Não informado'}</div><div><strong>CNAE / capital social</strong>${data.cnae}<br>${money(data.capital_social)}</div><div><strong>Quadro de funcionários</strong>${data.funcionarios || 'Não informado pela fonte cadastral'}</div></div><button class="btn-submit confirm-registration" id="confirmRegistration">Confirmar cadastro da empresa</button>`;
+            byId('documents').className = 'documents'; byId('financials').className = 'financials'; byId('step2').className = 'step'; byId('step3').className = 'step';
+            byId('confirmRegistration').addEventListener('click', () => { byId('documents').className = 'documents visible'; byId('step2').className = 'step active'; byId('confirmRegistration').textContent = 'Cadastro confirmado'; byId('confirmRegistration').disabled = true; });
         } catch (error) { showLookupError('Verifique se o FastAPI está em execução ou se a aplicação foi publicada corretamente.'); }
         finally { byId('searchButton').disabled = false; byId('searchButton').textContent = 'Consultar CNPJ'; }
     };
