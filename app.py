@@ -15,7 +15,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configuração de CORS para permitir requisições do navegador
+# Permite requisições do navegador sem bloqueios
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,15 +40,16 @@ class AnaliseCreditoInput(BaseModel):
     margem_liquida: float
     endividamento_geral: float
 
-@app.get("/api")
-@app.get("/api/")
-def pagina_inicial():
-    return {
-        "status": "online",
-        "projeto": "SmartCreditAI",
-        "mensagem": "O servidor do SmartCreditAI está a funcionar perfeitamente na Vercel!"
-    }
+# Rota principal que carrega a interface gráfica
+@app.get("/", response_class=HTMLResponse)
+def carregar_dashboard():
+    caminho_html = os.path.join(os.path.dirname(__file__), "index.html")
+    if os.path.exists(caminho_html):
+        with open(caminho_html, "r", encoding="utf-8") as file:
+            return file.read()
+    return "<h1>Erro: Ficheiro index.html não foi encontrado.</h1>"
 
+# Rota de análise e gravação na base de dados
 @app.post("/api/v1/decisao/analisar")
 def analisar_credito(dados: AnaliseCreditoInput):
     score = 500
