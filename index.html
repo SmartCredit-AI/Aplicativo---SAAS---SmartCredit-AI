@@ -356,9 +356,14 @@
             box-shadow: 0 6px 20px rgba(6, 182, 212, 0.45);
         }
 
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .btn:disabled,
+        .btn[disabled],
+        .btn-primary:disabled,
+        .btn-secondary:disabled,
+        .btn-outline-cyan:disabled {
+            opacity: 0.45 !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
             transform: none !important;
             box-shadow: none !important;
         }
@@ -369,7 +374,7 @@
             border: 1px solid var(--border-color);
         }
 
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.12);
         }
 
@@ -379,7 +384,7 @@
             border: 1px solid rgba(6, 182, 212, 0.35);
         }
 
-        .btn-outline-cyan:hover {
+        .btn-outline-cyan:hover:not(:disabled) {
             background: rgba(6, 182, 212, 0.2);
             border-color: var(--primary);
         }
@@ -1425,7 +1430,7 @@
 
                 <div class="input-row">
                     <input type="text" id="cnpjInput" class="input-field" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric">
-                    <button class="btn btn-primary" id="btnConsultarCnpj">
+                    <button type="button" class="btn btn-primary" id="btnConsultarCnpj">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
@@ -1485,7 +1490,7 @@
                     </div>
 
                     <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                        <button class="btn btn-primary" id="btnConfirmarEmpresa">
+                        <button type="button" class="btn btn-primary" id="btnConfirmarEmpresa">
                             Confirmar Empresa e Avançar para Documentos
                         </button>
                     </div>
@@ -1519,10 +1524,10 @@
                     <!-- Actions Bar -->
                     <div class="actions-bar">
                         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                            <button type="button" class="btn btn-outline-cyan" id="btnCarregarExemplo">
+                            <button type="button" class="btn btn-outline-cyan" id="btnCarregarExemplo" disabled>
                                 🚀 Carregar Exemplo Contábil Realista
                             </button>
-                            <button type="button" class="btn btn-secondary" id="btnLimparContas">
+                            <button type="button" class="btn btn-secondary" id="btnLimparContas" disabled>
                                 🔄 Zerar Contas
                             </button>
                         </div>
@@ -1806,7 +1811,7 @@
                     </div>
 
                     <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 24px;">
-                        <button class="btn btn-primary" id="btnAvancarIndices" disabled>
+                        <button type="button" class="btn btn-primary" id="btnAvancarIndices" disabled>
                             Avançar para Cruzamento de Índices & KPIs de Crédito
                         </button>
                         <span id="avisoBloqueioAuditoria" style="font-size: 0.82rem; color: var(--rose); display: none;">
@@ -1909,7 +1914,7 @@
 
                     <!-- Botão de Processar Decisão -->
                     <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 10px;">
-                        <button type="button" class="btn btn-primary" id="btnCalcularAnalise">
+                        <button type="button" class="btn btn-primary" id="btnCalcularAnalise" disabled>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                             </svg>
@@ -2141,7 +2146,7 @@
             }
         }
 
-        // CNPJ Masking & Auto-Consult
+        // CNPJ Masking (Consulta somente ao acionar botão ou Enter)
         const cnpjInput = byId('cnpjInput');
         cnpjInput.addEventListener('input', (e) => {
             let v = e.target.value.replace(/\D/g, '');
@@ -2157,11 +2162,6 @@
                 v = v.replace(/^(\d{2})(\d{1,3})$/, '$1.$2');
             }
             e.target.value = v;
-
-            const rawDigits = v.replace(/\D/g, '');
-            if (rawDigits.length === 14 && (!empresaAtual || empresaAtual.cnpj !== rawDigits)) {
-                consultarCnpj();
-            }
         });
 
         cnpjInput.addEventListener('keydown', (e) => {
@@ -2286,6 +2286,8 @@
         byId('btnConfirmarEmpresa').addEventListener('click', () => {
             byId('stepSectionDocs').classList.add('visible');
             byId('stepCard2').classList.add('active');
+            byId('btnCarregarExemplo').disabled = false;
+            byId('btnLimparContas').disabled = false;
             byId('stepSectionDocs').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
 
@@ -2490,6 +2492,11 @@
             });
             byId('extracaoStatusChip').textContent = 'Contas zeradas. Aguardando novo upload.';
             byId('extracaoStatusChip').style.color = 'var(--text-muted)';
+            byId('stepSectionFinancials').classList.remove('visible');
+            byId('stepCard2').classList.remove('completed');
+            byId('stepCard3').classList.remove('active', 'completed');
+            byId('btnAvancarIndices').disabled = true;
+            byId('btnCalcularAnalise').disabled = true;
             recalcularIndicesEmTempoReal();
             showToast('Contas contábeis zeradas.', 'info');
         });
@@ -2857,6 +2864,7 @@
             byId('stepSectionFinancials').classList.add('visible');
             byId('stepCard2').classList.add('completed');
             byId('stepCard3').classList.add('active');
+            byId('btnCalcularAnalise').disabled = false;
             recalcularIndicesEmTempoReal();
             byId('stepSectionFinancials').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
@@ -2997,6 +3005,11 @@
         function resetForm() {
             empresaAtual = null;
             cnpjInput.value = '';
+            statusAuditoriaAtual = { aprovado: false };
+            byId('btnCarregarExemplo').disabled = true;
+            byId('btnLimparContas').disabled = true;
+            byId('btnAvancarIndices').disabled = true;
+            byId('btnCalcularAnalise').disabled = true;
             byId('companyPanel').classList.remove('visible');
             byId('stepSectionDocs').classList.remove('visible');
             byId('stepSectionFinancials').classList.remove('visible');
