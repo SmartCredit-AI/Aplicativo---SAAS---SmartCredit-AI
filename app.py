@@ -1,8 +1,9 @@
 # ==========================================================
-# SMARTCREDITAI - MOTOR DE CRÉDITO E ANÁLISE CONTÁBIL (app.py)
+# SMARTCREDITAI - MOTOR DE CRÉDITO E AUDITORIA CONTÁBIL (app.py)
 # ==========================================================
 
 import os
+import io
 import json
 import re
 from datetime import datetime, timezone
@@ -25,8 +26,8 @@ except ImportError:
 # Inicialização da aplicação FastAPI
 app = FastAPI(
     title="SmartCreditAI",
-    description="Motor Inteligente de Análise Contábil e Concessão de Crédito Empresarial",
-    version="1.2.0"
+    description="Motor Inteligente de Análise Contábil, Auditoria por IA e Decisão de Crédito Empresarial",
+    version="1.3.0"
 )
 
 # Permite requisições do navegador sem bloqueios de CORS
@@ -91,11 +92,16 @@ class ContasDre(BaseModel):
     lucro_liquido: float = 0.0
 
 
+class AuditoriaInput(BaseModel):
+    balanco: ContasBalanco
+    dre: ContasDre
+
+
 class AnaliseCreditoInput(BaseModel):
     cnpj: Optional[str] = None
     razao_social: Optional[str] = None
     
-    # Contas Contábeis (Opcionais com defaults calculados ou preenchidos)
+    # Contas Contábeis
     balanco: Optional[ContasBalanco] = None
     dre: Optional[ContasDre] = None
     
@@ -114,21 +120,76 @@ class ExtracaoTextoInput(BaseModel):
 
 
 # ==========================================================
-# PARSER E EXTRATOR INTELIGENTE DE TEXTO / PLANILHAS
+# PARSER REAL DE ARQUIVOS (PDF, EXCEL, CSV, TXT)
 # ==========================================================
 
+def extrair_texto_de_arquivo(nome_arquivo: str, conteudo_bytes: bytes) -> str:
+    """Extrai texto legível de arquivos PDF, planilhas Excel (.xlsx/.xls) ou arquivos de texto/CSV."""
+    nome_lower = (nome_arquivo or "").lower()
+
+    # 1. Arquivo PDF real (usando pypdf)
+    if nome_lower.endswith(".pdf"):
+        try:
+            from pypdf import PdfReader
+            leitor = PdfReader(io.BytesIO(conteudo_bytes))
+            textos = []
+            for num, pagina in enumerate(leitor.pages):
+                txt = pagina.extract_text()
+                if txt:
+                    textos.append(txt)
+            if textos:
+                return "\n".join(textos)
+        except Exception as e:
+            print(f"Aviso ao ler PDF '{nome_arquivo}' com pypdf: {e}")
+
+    # 2. Planilha Excel real (usando openpyxl)
+    elif nome_lower.endswith((".xlsx", ".xlsm", ".xltx")):
+        try:
+            import openpyxl
+            wb = openpyxl.load_workbook(io.BytesIO(conteudo_bytes), data_only=True)
+            linhas_planilha = []
+            for sheetname in wb.sheetnames:
+                ws = wb[sheetname]
+                for row in ws.iter_rows(values_only=True):
+                    celulas = [str(c).strip() for c in row if c is not None and str(c).strip() != ""]
+                    if celulas:
+                        linhas_planilha.append(" | ".join(celulas))
+            if linhas_planilha:
+                return "\n".join(linhas_planilha)
+        except Exception as e:
+            print(f"Aviso ao ler Excel '{nome_arquivo}' com openpyxl: {e}")
+
+    # 3. Arquivo de Texto, CSV ou fallback com detecção de encoding
+    for enc in ["utf-8", "latin-1", "cp1252", "iso-8859-1"]:
+        try:
+            return conteudo_bytes.decode(enc)
+        except UnicodeDecodeError:
+            continue
+
+    return conteudo_bytes.decode("utf-8", errors="ignore")
+
+
 def limpar_numero(val_str: str) -> float:
-    """Converte strings numéricas em float tratando formatos brasileiros (1.000,00) e internacionais."""
+    """Converte strings numéricas em float tratando padrões brasileiros (1.000,00) e internacionais."""
     if not val_str:
         return 0.0
     v = val_str.strip().replace("R$", "").replace(" ", "")
-    # Se contém ponto e vírgula, ex: 1.250.000,50
+    # Se contém parênteses de valor negativo contábil ex: (50.000,00)
+    negativo = False
+    if v.startswith("(") and v.endswith(")"):
+        negativo = True
+        v = v[1:-1]
+    elif "-" in v:
+        negativo = True
+
     if "." in v and "," in v:
         v = v.replace(".", "").replace(",", ".")
     elif "," in v:
         v = v.replace(",", ".")
+
     try:
-        return float(re.findall(r"[-+]?\d*\.?\d+", v)[0])
+        num = float(re.findall(r"\d+\.?\d*", v)[0])
+        return -num if negativo else num
     except (IndexError, ValueError):
         return 0.0
 
@@ -143,37 +204,38 @@ def extrair_contas_contabeis(conteudo_texto: str) -> Dict[str, Any]:
     dre = ContasDre().model_dump()
     contas_encontradas = []
 
-    # Dicionário de padrões regex para identificação das contas
+    # Padrões regex para contas do Balanço Patrimonial
     padroes_balanco = {
-        "ativo_circulante": r"(?:ativo\s+circulante|circulante\s+ativo)",
-        "disponibilidades": r"(?:disponibilidades|caixa\s+e\s+equivalentes|caixa\s+e\s+bancos|bancos\s+conta)",
-        "contas_a_receber": r"(?:contas\s+a\s+receber|clientes|duplicatas\s+a\s+receber)",
-        "estoques": r"(?:estoques?|mercadorias\s+para\s+revenda)",
-        "ativo_nao_circulante": r"(?:ativo\s+n[aã]o\s+circulante|realiz[aá]vel\s+a\s+longo\s+prazo|imobilizado|ativo\s+permanente)",
-        "realizavel_longo_prazo": r"(?:realiz[aá]vel\s+a\s+longo\s+prazo|ativo\s+rlp)",
-        "imobilizado": r"(?:imobilizado|ativo\s+imobilizado|bens\s+e\s+equipamentos)",
-        "ativo_total": r"(?:ativo\s+total|total\s+do\s+ativo)",
-        "passivo_circulante": r"(?:passivo\s+circulante|circulante\s+passivo)",
-        "fornecedores": r"(?:fornecedores|contas\s+a\s+pagar\s+fornecedores)",
-        "emprestimos_curto_prazo": r"(?:empr[eé]stimos\s+(?:cp|curto\s+prazo)|financiamentos\s+cp)",
-        "passivo_nao_circulante": r"(?:passivo\s+n[aã]o\s+circulante|exig[ií]vel\s+a\s+longo\s+prazo)",
-        "financiamentos_longo_prazo": r"(?:empr[eé]stimos\s+lp|financiamentos\s+lp|d[ií]vidas\s+lp)",
-        "patrimonio_liquido": r"(?:patrim[oô]nio\s+l[ií]quido|pl\s+total|total\s+do\s+patrim[oô]nio)",
-        "capital_social": r"(?:capital\s+social|capital\s+subscrito|capital\s+integralizado)"
+        "disponibilidades": r"(?:disponibilidades|caixa\s+e\s+equivalentes|caixa\s+e\s+bancos|bancos\s+conta\s+movimento|dispon[ií]vel)",
+        "contas_a_receber": r"(?:contas\s+a\s+receber|duplicatas\s+a\s+receber|clientes\s+a\s+receber|cr[eé]ditos\s+operacionais)",
+        "estoques": r"(?:estoques?|mercadorias\s+para\s+revenda|produtos\s+acabados|mat[eé]rias\s+primas)",
+        "ativo_circulante": r"(?:ativo\s+circulante|total\s+do\s+ativo\s+circulante|circulante\s+ativo)",
+        "realizavel_longo_prazo": r"(?:realiz[aá]vel\s+a\s+longo\s+prazo|ativo\s+rlp|cr[eé]ditos\s+de\s+longo\s+prazo)",
+        "imobilizado": r"(?:imobilizado|ativo\s+imobilizado|intang[ií]vel|investimentos\s+e\s+imobilizado|bens\s+e\s+direitos)",
+        "ativo_nao_circulante": r"(?:ativo\s+n[aã]o\s+circulante|total\s+do\s+ativo\s+n[aã]o\s+circulante|permanente)",
+        "ativo_total": r"(?:ativo\s+total|total\s+do\s+ativo|total\s+geral\s+do\s+ativo)",
+        "fornecedores": r"(?:fornecedores|contas\s+a\s+pagar\s+fornecedores|fornecedores\s+nacionais)",
+        "emprestimos_curto_prazo": r"(?:empr[eé]stimos\s+e\s+financiamentos\s+cp|empr[eé]stimos\s+(?:cp|curto\s+prazo)|financiamentos\s+cp|d[ií]vidas\s+cp)",
+        "passivo_circulante": r"(?:passivo\s+circulante|total\s+do\s+passivo\s+circulante|circulante\s+passivo)",
+        "financiamentos_longo_prazo": r"(?:empr[eé]stimos\s+lp|financiamentos\s+lp|d[ií]vidas\s+lp|financiamentos\s+a\s+longo\s+prazo)",
+        "passivo_nao_circulante": r"(?:passivo\s+n[aã]o\s+circulante|total\s+do\s+passivo\s+n[aã]o\s+circulante|exig[ií]vel\s+a\s+longo\s+prazo)",
+        "capital_social": r"(?:capital\s+social|capital\s+subscrito|capital\s+integralizado)",
+        "patrimonio_liquido": r"(?:patrim[oô]nio\s+l[ií]quido|total\s+do\s+patrim[oô]nio\s+l[ií]quido|pl\s+total)"
     }
 
+    # Padrões regex para contas da DRE
     padroes_dre = {
-        "receita_bruta": r"(?:receita\s+operacional\s+bruta|receita\s+bruta\s+de\s+vendas|vendas\s+brutas)",
-        "deducoes": r"(?:dedu[cç][oõ]es\s+da\s+receita|impostos\s+sobre\s+vendas|devolu[cç][oõ]es)",
-        "receita_liquida": r"(?:receita\s+operacional\s+l[ií]quida|receita\s+l[ií]quida|vendas\s+l[ií]quidas)",
-        "custos_vendas": r"(?:custo\s+(?:das\s+vendas|dos\s+produtos|dos\s+servi[cç]os)|cmv|cpv|csp)",
-        "lucro_bruto": r"(?:lucro\s+bruto|resultado\s+bruto)",
-        "despesas_operacionais": r"(?:despesas\s+operacionais|despesas\s+administrativas|despesas\s+comerciais)",
-        "ebitda": r"(?:ebitda|lajida|resultado\s+operacional\s+antes)",
-        "depreciacao_amortizacao": r"(?:deprecia[cç][aã]o|amortiza[cç][aã]o)",
-        "resultado_financeiro": r"(?:resultado\s+financeiro|despesas\s+financeiras\s+l[ií]quidas)",
-        "impostos": r"(?:irpj|csll|provis[aã]o\s+para\s+imposto)",
-        "lucro_liquido": r"(?:lucro\s+l[ií]quido|lucro\/preju[ií]zo\s+do\s+exerc[ií]cio|resultado\s+l[ií]quido)"
+        "receita_bruta": r"(?:receita\s+operacional\s+bruta|receita\s+bruta\s+de\s+vendas|vendas\s+brutas|faturamento\s+bruto)",
+        "deducoes": r"(?:dedu[cç][oõ]es\s+da\s+receita|impostos\s+incidentes\s+sobre\s+vendas|devolu[cç][oõ]es\s+e\s+abatimentos)",
+        "receita_liquida": r"(?:receita\s+operacional\s+l[ií]quida|receita\s+l[ií]quida|vendas\s+l[ií]quidas|total\s+da\s+receita\s+l[ií]quida)",
+        "custos_vendas": r"(?:custo\s+(?:das\s+vendas|dos\s+produtos|dos\s+servi[cç]os)|custo\s+das\s+mercadorias|cmv|cpv|csp)",
+        "lucro_bruto": r"(?:lucro\s+bruto|resultado\s+bruto|resultado\s+operacional\s+bruto)",
+        "despesas_operacionais": r"(?:despesas\s+operacionais|despesas\s+com\s+vendas|despesas\s+administrativas|despesas\s+gerais)",
+        "ebitda": r"(?:ebitda|lajida|resultado\s+operacional\s+antes\s+dos\s+efeitos|lucro\s+operacional)",
+        "depreciacao_amortizacao": r"(?:deprecia[cç][aã]o|amortiza[cç][aã]o|deprecia[cç][aã]o\s+e\s+amortiza[cç][aã]o)",
+        "resultado_financeiro": r"(?:resultado\s+financeiro\s+l[ií]quido|despesas\s+financeiras\s+l[ií]quidas|receitas\s+e\s+despesas\s+financeiras)",
+        "impostos": r"(?:irpj\s+e\s+csll|imposto\s+de\s+renda\s+e\s+contribui[cç][aã]o|provis[aã]o\s+para\s+irpj)",
+        "lucro_liquido": r"(?:lucro\s+l[ií]quido\s+do\s+exerc[ií]cio|lucro\s+l[ií]quido|resultado\s+l[ií]quido\s+do\s+exerc[ií]cio|lucro\/preju[ií]zo\s+l[ií]quido)"
     }
 
     for linha in linhas:
@@ -181,8 +243,8 @@ def extrair_contas_contabeis(conteudo_texto: str) -> Dict[str, Any]:
         if not linha_limpa or len(linha_limpa) < 3:
             continue
 
-        # Procura números na linha (valores monetários)
-        numeros = re.findall(r"[-+]?\s*R?\$?\s*(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{2})?", linha_limpa)
+        # Procura padrões de números monetários na linha
+        numeros = re.findall(r"[-+]?\s*\(?\s*R?\$?\s*(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{2})?\s*\)?", linha_limpa)
         if not numeros:
             continue
         ultimo_valor = limpar_numero(numeros[-1])
@@ -200,33 +262,10 @@ def extrair_contas_contabeis(conteudo_texto: str) -> Dict[str, Any]:
         for chave, padrao in padroes_dre.items():
             if re.search(padrao, linha_limpa, re.IGNORECASE) and dre[chave] == 0:
                 # Lucro Líquido e Resultado Financeiro podem ser negativos
-                valor_final = ultimo_valor if "-" not in numeros[-1] else -abs(ultimo_valor)
+                valor_final = ultimo_valor if "-" not in numeros[-1] and not numeros[-1].startswith("(") else -abs(ultimo_valor)
                 dre[chave] = valor_final
                 contas_encontradas.append({"tipo": "dre", "conta": chave, "valor": valor_final, "linha": linha_limpa})
                 break
-
-    # Racionalização / Consistência Contábil de Fechamento
-    # Se ativo total estiver zerado, tenta compor ativo circulante + não circulante
-    if balanco["ativo_total"] == 0:
-        balanco["ativo_total"] = balanco["ativo_circulante"] + balanco["ativo_nao_circulante"]
-    if balanco["ativo_circulante"] == 0 and (balanco["disponibilidades"] or balanco["contas_a_receber"] or balanco["estoques"]):
-        balanco["ativo_circulante"] = balanco["disponibilidades"] + balanco["contas_a_receber"] + balanco["estoques"]
-    if balanco["passivo_circulante"] == 0 and (balanco["fornecedores"] or balanco["emprestimos_curto_prazo"]):
-        balanco["passivo_circulante"] = balanco["fornecedores"] + balanco["emprestimos_curto_prazo"]
-    if balanco["patrimonio_liquido"] == 0 and balanco["ativo_total"] > 0:
-        exigivel = balanco["passivo_circulante"] + balanco["passivo_nao_circulante"]
-        if balanco["ativo_total"] >= exigivel:
-            balanco["patrimonio_liquido"] = balanco["ativo_total"] - exigivel
-
-    # Consistência da DRE
-    if dre["receita_liquida"] == 0 and dre["receita_bruta"] > 0:
-        dre["receita_liquida"] = dre["receita_bruta"] - dre["deducoes"]
-    if dre["lucro_bruto"] == 0 and dre["receita_liquida"] > 0 and dre["custos_vendas"] > 0:
-        dre["lucro_bruto"] = dre["receita_liquida"] - dre["custos_vendas"]
-    if dre["ebitda"] == 0 and dre["lucro_bruto"] > 0:
-        dre["ebitda"] = dre["lucro_bruto"] - dre["despesas_operacionais"]
-    if dre["lucro_liquido"] == 0 and dre["ebitda"] > 0:
-        dre["lucro_liquido"] = dre["ebitda"] - dre["depreciacao_amortizacao"] + dre["resultado_financeiro"] - dre["impostos"]
 
     return {
         "sucesso": True,
@@ -234,6 +273,146 @@ def extrair_contas_contabeis(conteudo_texto: str) -> Dict[str, Any]:
         "dre": dre,
         "total_contas_detectadas": len(contas_encontradas),
         "contas_encontradas": contas_encontradas
+    }
+
+
+# ==========================================================
+# MOTOR DE AUDITORIA CONTÁBIL POR INTELIGÊNCIA ARTIFICIAL
+# ==========================================================
+
+def formatar_moeda(val: float) -> str:
+    """Formata valor em formato de moeda brasileira R$ 1.234.567,89."""
+    return f"R$ {val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def auditar_demonstrativos_contabeis(balanco: Dict[str, Any], dre: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Executa a auditoria inteligente dos demonstrativos contábeis carregados.
+    Verifica a Equação Patrimonial Fundamental, a coerência interna da DRE,
+    a compatibilidade entre o Balanço e a DRE e rejeita arquivos com divergências severas.
+    """
+    erros_criticos: List[str] = []
+    alertas: List[str] = []
+
+    # Extração das grandezas informadas
+    ativo_total = balanco.get("ativo_total", 0.0)
+    ativo_circulante = balanco.get("ativo_circulante", 0.0)
+    disponibilidades = balanco.get("disponibilidades", 0.0)
+    contas_a_receber = balanco.get("contas_a_receber", 0.0)
+    estoques = balanco.get("estoques", 0.0)
+    ativo_nao_circulante = balanco.get("ativo_nao_circulante", 0.0)
+
+    passivo_circulante = balanco.get("passivo_circulante", 0.0)
+    passivo_nao_circulante = balanco.get("passivo_nao_circulante", 0.0)
+    patrimonio_liquido = balanco.get("patrimonio_liquido", 0.0)
+
+    receita_bruta = dre.get("receita_bruta", 0.0)
+    deducoes = dre.get("deducoes", 0.0)
+    receita_liquida = dre.get("receita_liquida", 0.0)
+    lucro_bruto = dre.get("lucro_bruto", 0.0)
+    ebitda = dre.get("ebitda", 0.0)
+    lucro_liquido = dre.get("lucro_liquido", 0.0)
+
+    # 1. TESTE DA EQUAÇÃO PATRIMONIAL FUNDAMENTAL (Ativo = Passivo + PL)
+    soma_passivo_pl = passivo_circulante + passivo_nao_circulante + patrimonio_liquido
+    diferenca_balanco = abs(ativo_total - soma_passivo_pl)
+
+    # Se ambos os lados possuem valores preenchidos (> 0)
+    if ativo_total > 0 and soma_passivo_pl > 0:
+        perc_dif = (diferenca_balanco / ativo_total) * 100.0
+        # Tolerância de até 3% para pequenas variações de arredondamento em balanços
+        if perc_dif > 3.0 and diferenca_balanco > 10000.0:
+            erros_criticos.append(
+                f"Desequilíbrio Patrimonial Severo: O Ativo Total ({formatar_moeda(ativo_total)}) "
+                f"diverge do Passivo Total + PL ({formatar_moeda(soma_passivo_pl)}) "
+                f"em {formatar_moeda(diferenca_balanco)} ({perc_dif:.1f}% de diferença). "
+                f"A Equação Fundamental do Balanço (Ativo = Passivo + PL) foi violada."
+            )
+    elif ativo_total > 0 and soma_passivo_pl == 0:
+        erros_criticos.append(
+            f"Passivo e Patrimônio Líquido não informados ou zerados para um Ativo Total de {formatar_moeda(ativo_total)}."
+        )
+
+    # 2. TESTE DE SINAIS E INTEGRIDADE DE ATIVO
+    if disponibilidades < 0:
+        erros_criticos.append("Disponibilidades / Caixa não pode apresentar saldo negativo no Balanço.")
+    if contas_a_receber < 0 or estoques < 0:
+        erros_criticos.append("Contas de Ativo Circulante (Clientes e Estoques) com saldo negativo inválido.")
+    if ativo_total < 0 or ativo_circulante < 0:
+        erros_criticos.append("Total do Ativo ou Ativo Circulante não pode ser negativo.")
+
+    # 3. TESTE DE CONSISTÊNCIA INTERNA DA DRE
+    if receita_bruta > 0 and receita_liquida > (receita_bruta * 1.01):
+        erros_criticos.append(
+            f"Inconsistência na DRE: A Receita Líquida ({formatar_moeda(receita_liquida)}) "
+            f"é maior do que a Receita Bruta ({formatar_moeda(receita_bruta)})."
+        )
+
+    if receita_liquida > 0 and lucro_bruto > (receita_liquida * 1.02):
+        erros_criticos.append(
+            f"Inconsistência na DRE: O Lucro Bruto ({formatar_moeda(lucro_bruto)}) "
+            f"ultrapassa a Receita Líquida ({formatar_moeda(receita_liquida)})."
+        )
+
+    if receita_liquida > 0 and lucro_liquido > (receita_liquida * 1.05):
+        erros_criticos.append(
+            f"Inconsistência Crítica na DRE: O Lucro Líquido ({formatar_moeda(lucro_liquido)}) "
+            f"é superior à própria Receita Operacional Líquida ({formatar_moeda(receita_liquida)})."
+        )
+
+    # 4. CRUZAMENTO ANALÍTICO: DRE vs. BALANÇO PATRIMONIAL
+    # Contas a Receber vs. Receita Anual
+    if receita_liquida > 0 and contas_a_receber > (receita_liquida * 2.0) and contas_a_receber > 100000.0:
+        alertas.append(
+            f"Divergência entre DRE e Balanço: O saldo de Contas a Receber ({formatar_moeda(contas_a_receber)}) "
+            f"representa mais de 200% do Faturamento Anual ({formatar_moeda(receita_liquida)}). "
+            f"Indica possível acúmulo de créditos vencidos ou exercício contábil incompatível."
+        )
+
+    # Lucro Líquido vs. Patrimônio Líquido
+    if patrimonio_liquido > 0 and patrimonio_liquido < 20000.0 and lucro_liquido > 1000000.0:
+        alertas.append(
+            f"Incompatibilidade de Porte: Lucro Líquido de {formatar_moeda(lucro_liquido)} "
+            f"declarado para um Patrimônio Líquido de apenas {formatar_moeda(patrimonio_liquido)}."
+        )
+
+    # 5. ATIVO CIRCULANTE vs. COMPONENTES
+    soma_componentes_ac = disponibilidades + contas_a_receber + estoques
+    if ativo_circulante > 0 and soma_componentes_ac > (ativo_circulante * 1.25):
+        alertas.append(
+            f"A soma de Caixa, Clientes e Estoques ({formatar_moeda(soma_componentes_ac)}) "
+            f"ultrapassa o Ativo Circulante total informado ({formatar_moeda(ativo_circulante)})."
+        )
+
+    # DECISÃO DA AUDITORIA POR IA
+    aprovado = len(erros_criticos) == 0
+
+    if not aprovado:
+        status_auditoria = "REJEITADO_INCONSISTENTE"
+        diagnostico = (
+            "Os demonstrativos contábeis foram REJEITADOS pela Auditoria Inteligente. "
+            "Foram detectadas incongruências matemáticas e contábeis graves que invalidam o cálculo de risco."
+        )
+    elif len(alertas) > 0:
+        status_auditoria = "APROVADO_COM_RESSALVAS"
+        diagnostico = (
+            "Demonstrativos contábeis APROVADOS com ressalvas. A estrutura básica fecha, "
+            "mas foram identificados pontos atípicos de atenção analítica."
+        )
+    else:
+        status_auditoria = "APROVADO"
+        diagnostico = (
+            "Auditoria Contábil por IA APROVADA: Balanço Patrimonial e DRE em plena conformidade contábil "
+            "e perfeitamente conciliados."
+        )
+
+    return {
+        "aprovado": aprovado,
+        "status_auditoria": status_auditoria,
+        "erros_criticos": erros_criticos,
+        "alertas": alertas,
+        "diferenca_balanco": round(diferenca_balanco, 2),
+        "diagnostico_ia": diagnostico
     }
 
 
@@ -257,7 +436,7 @@ def consultar_cnpj_externo(cnpj: str):
 
     request = Request(
         f"https://brasilapi.com.br/api/cnpj/v1/{cnpj_limpo}",
-        headers={"User-Agent": "SmartCreditAI/1.2"}
+        headers={"User-Agent": "SmartCreditAI/1.3"}
     )
     try:
         with urlopen(request, timeout=8) as response:
@@ -301,10 +480,12 @@ def consultar_empresa(cnpj: str):
 @app.post("/api/v1/documentos/extrair")
 def extrair_documentos(dados: ExtracaoTextoInput):
     resultado = extrair_contas_contabeis(dados.texto)
+    auditoria = auditar_demonstrativos_contabeis(resultado["balanco"], resultado["dre"])
+    resultado["auditoria"] = auditoria
     return resultado
 
 
-# Rota para upload direto de arquivos de Balanço e DRE
+# Rota para upload direto de arquivos de Balanço e DRE (PDF, Excel, CSV, TXT)
 @app.post("/api/v1/documentos/upload")
 async def upload_documentos(
     arquivo_balanco: Optional[UploadFile] = File(None),
@@ -317,15 +498,24 @@ async def upload_documentos(
         if arq and arq.filename:
             nomes_arquivos.append(arq.filename)
             conteudo_bytes = await arq.read()
-            # Decodificação flexível (UTF-8, Latin-1, ASCII)
-            try:
-                texto_combinado += "\n" + conteudo_bytes.decode("utf-8", errors="ignore")
-            except Exception:
-                texto_combinado += "\n" + conteudo_bytes.decode("latin-1", errors="ignore")
+            texto_extraido = extrair_texto_de_arquivo(arq.filename, conteudo_bytes)
+            texto_combinado += f"\n--- INICIO ARQUIVO {arq.filename} ---\n" + texto_extraido
 
     resultado = extrair_contas_contabeis(texto_combinado)
+    auditoria = auditar_demonstrativos_contabeis(resultado["balanco"], resultado["dre"])
+    resultado["auditoria"] = auditoria
     resultado["arquivos_processados"] = nomes_arquivos
     return resultado
+
+
+# Rota para validação e auditoria contábil isolada das contas preenchidas
+@app.post("/api/v1/auditoria/validar")
+def validar_auditoria_contabil(dados: AuditoriaInput):
+    resultado_auditoria = auditar_demonstrativos_contabeis(
+        dados.balanco.model_dump(),
+        dados.dre.model_dump()
+    )
+    return resultado_auditoria
 
 
 # ==========================================================
@@ -334,11 +524,47 @@ async def upload_documentos(
 
 @app.post("/api/v1/decisao/analisar")
 def analisar_credito(dados: AnaliseCreditoInput):
-    # Consolida as contas contábeis
     b = dados.balanco.model_dump() if dados.balanco else {}
     d = dados.dre.model_dump() if dados.dre else {}
 
-    # Resgata ou deduz grandezas fundamentais
+    # 1. EXECUTAR AUDITORIA CONTÁBIL PRIMEIRO
+    auditoria = auditar_demonstrativos_contabeis(b, d)
+
+    # Se a auditoria for rejeitada por inconsistência severa, bloqueia a concessão
+    if not auditoria["aprovado"]:
+        registro_rejeitado = {
+            "cnpj": dados.cnpj,
+            "razao_social": dados.razao_social or "Empresa em Análise",
+            "receita_liquida_anual": d.get("receita_liquida", 0.0),
+            "liquidez_corrente": 0.0,
+            "margem_liquida": 0.0,
+            "endividamento_geral": 100.0,
+            "score": 80,
+            "classificacao_risco": "CRÍTICO - INCONSISTÊNCIA CONTÁBIL",
+            "status_decisao": "REPROVADO",
+            "limite_sugerido": 0.0,
+            "rating": "D",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        return {
+            "score": 80,
+            "rating": "D",
+            "classificacao_risco": "CRÍTICO",
+            "status_decisao": "REPROVADO",
+            "limite_sugerido": 0.0,
+            "capacidade_pagamento_mensal": 0.0,
+            "auditoria": auditoria,
+            "motivo_rejeicao": auditoria["erros_criticos"],
+            "pontos_fortes": [],
+            "pontos_atencao": auditoria["erros_criticos"] + auditoria["alertas"],
+            "indices": {},
+            "contas": {},
+            "gravado_supabase": False,
+            "cnpj": dados.cnpj,
+            "razao_social": dados.razao_social
+        }
+
+    # Grandezas contábeis
     receita_liquida = d.get("receita_liquida") or dados.receita_liquida_anual or 1200000.0
     ativo_total = b.get("ativo_total") or (receita_liquida * 0.8)
     ativo_circulante = b.get("ativo_circulante") or (ativo_total * 0.55)
@@ -351,44 +577,30 @@ def analisar_credito(dados: AnaliseCreditoInput):
     ebitda = d.get("ebitda") or (receita_liquida * 0.18)
     lucro_liquido = d.get("lucro_liquido") or (receita_liquida * (dados.margem_liquida or 10.0) / 100.0)
 
-    # 1. Cruzamento de Índices Contábeis Rigorosos
-    # Liquidez Corrente
-    if passivo_circulante > 0:
-        liq_corrente = round(ativo_circulante / passivo_circulante, 2)
-        liq_seca = round(max(0.0, ativo_circulante - estoques) / passivo_circulante, 2)
-    else:
-        liq_corrente = round(dados.liquidez_corrente or 2.0, 2)
-        liq_seca = round(dados.liquidez_seca or 1.5, 2)
+    # Cruzamento de Índices Contábeis
+    liq_corrente = round(ativo_circulante / passivo_circulante, 2) if passivo_circulante > 0 else 1.5
+    liq_seca = round(max(0.0, ativo_circulante - estoques) / passivo_circulante, 2) if passivo_circulante > 0 else 1.0
 
-    # Liquidez Geral
     exigivel_total = passivo_circulante + passivo_nao_circulante
     rlp = b.get("realizavel_longo_prazo", 0.0)
     liq_geral = round((ativo_circulante + rlp) / exigivel_total, 2) if exigivel_total > 0 else liq_corrente
 
-    # Endividamento Geral (%)
-    if ativo_total > 0:
-        endiv_geral = round((exigivel_total / ativo_total) * 100.0, 1)
-    else:
-        endiv_geral = round(dados.endividamento_geral or 45.0, 1)
-
-    # Perfil da Dívida (% Curto Prazo)
+    endiv_geral = round((exigivel_total / ativo_total) * 100.0, 1) if ativo_total > 0 else 45.0
     perfil_divida = round((passivo_circulante / exigivel_total) * 100.0, 1) if exigivel_total > 0 else 50.0
 
-    # Margens (%)
     margem_bruta = round((lucro_bruto / receita_liquida) * 100.0, 1) if receita_liquida > 0 else 30.0
     margem_ebitda = round((ebitda / receita_liquida) * 100.0, 1) if receita_liquida > 0 else 15.0
-    margem_liquida = round((lucro_liquido / receita_liquida) * 100.0, 1) if receita_liquida > 0 else round(dados.margem_liquida or 10.0, 1)
+    margem_liquida = round((lucro_liquido / receita_liquida) * 100.0, 1) if receita_liquida > 0 else 10.0
 
-    # Retornos (%)
     roe = round((lucro_liquido / patrimonio_liquido) * 100.0, 1) if patrimonio_liquido > 0 else 0.0
     roa = round((lucro_liquido / ativo_total) * 100.0, 1) if ativo_total > 0 else 0.0
 
-    # 2. Motor de Pontuação e Score IA (0 a 1000)
+    # Motor de Score IA (0 a 1000)
     score = 500
     pontos_fortes = []
     pontos_atencao = []
 
-    # Pilar 1: Liquidez (Peso: 250 pts)
+    # Pilar 1: Liquidez
     if liq_corrente >= 1.6 and liq_seca >= 1.1:
         score += 150
         pontos_fortes.append(f"Excelente índice de liquidez corrente ({liq_corrente}x) e seca ({liq_seca}x).")
@@ -400,9 +612,9 @@ def analisar_credito(dados: AnaliseCreditoInput):
         pontos_atencao.append(f"Liquidez no limiar de equilíbrio ({liq_corrente}x).")
     else:
         score -= 120
-        pontos_atencao.append(f"Alerta de liquidez crítica: passivo de curto prazo supera os ativos circulantes ({liq_corrente}x).")
+        pontos_atencao.append(f"Alerta de liquidez crítica: passivo de curto prazo supera o ativo circulante ({liq_corrente}x).")
 
-    # Pilar 2: Endividamento e Estrutura de Capital (Peso: 250 pts)
+    # Pilar 2: Endividamento
     if endiv_geral <= 45.0:
         score += 140
         pontos_fortes.append(f"Baixo endividamento geral ({endiv_geral}% do ativo total).")
@@ -411,7 +623,7 @@ def analisar_credito(dados: AnaliseCreditoInput):
         pontos_fortes.append(f"Endividamento moderado e controlado ({endiv_geral}%).")
     elif endiv_geral <= 80.0:
         score -= 50
-        pontos_atencao.append(f"Endividamento geral elevado ({endiv_geral}%). Recomenda-se cautela.")
+        pontos_atencao.append(f"Endividamento geral elevado ({endiv_geral}%).")
     else:
         score -= 150
         pontos_atencao.append(f"Alavancagem excessiva: endividamento atinge {endiv_geral}% do ativo total.")
@@ -420,7 +632,7 @@ def analisar_credito(dados: AnaliseCreditoInput):
         score -= 30
         pontos_atencao.append("Concentração desproporcional da dívida no curto prazo (>75%).")
 
-    # Pilar 3: Margens e Geração de Caixa (Peso: 250 pts)
+    # Pilar 3: Margens e Geração de Caixa
     if margem_liquida >= 12.0 and margem_ebitda >= 15.0:
         score += 130
         pontos_fortes.append(f"Alta rentabilidade operacional: margem líquida de {margem_liquida}% e EBITDA de {margem_ebitda}%.")
@@ -429,12 +641,12 @@ def analisar_credito(dados: AnaliseCreditoInput):
         pontos_fortes.append(f"Margem de lucro consistente ({margem_liquida}%).")
     elif margem_liquida > 0:
         score += 10
-        pontos_atencao.append(f"Margem líquida estreita ({margem_liquida}%). Sensível a oscilações de custos.")
+        pontos_atencao.append(f"Margem líquida estreita ({margem_liquida}%).")
     else:
         score -= 140
         pontos_atencao.append(f"Resultado em prejuízo no exercício ({margem_liquida}%).")
 
-    # Pilar 4: Retorno e Robustez Patrimonial (Peso: 150 pts)
+    # Pilar 4: Retorno e Patrimônio Líquido
     if roe >= 15.0:
         score += 80
         pontos_fortes.append(f"Forte retorno sobre o patrimônio líquido (ROE: {roe}%).")
@@ -447,10 +659,13 @@ def analisar_credito(dados: AnaliseCreditoInput):
         score -= 200
         pontos_atencao.append("Passivo a descoberto: Patrimônio Líquido negativo.")
 
-    # Limita o score entre 0 e 1000
+    # Incorpora eventuais alertas da auditoria nos pontos de atenção
+    if auditoria.get("alertas"):
+        pontos_atencao.extend(auditoria["alertas"])
+
     score = max(50, min(1000, score))
 
-    # 3. Rating e Classificação de Risco
+    # Rating e Decisão
     if score >= 850:
         rating = "AAA"
         risco = "MÍNIMO"
@@ -492,13 +707,8 @@ def analisar_credito(dados: AnaliseCreditoInput):
         decisao = "REPROVADO"
         fator_limite = 0.0
 
-    # 4. Cálculo dos KPIs de Crédito
-    # Capacidade mensal de pagamento (serviço da dívida estimado com base no EBITDA)
     capacidade_mensal = round(max(0.0, (ebitda * 0.40) / 12.0), 2)
-    
-    # Limite sugerido com travas prudenciais de PL e Receita
     limite_bruto = receita_liquida * fator_limite
-    # O limite não deve exceder 50% do PL positivo nem 6x a capacidade mensal
     teto_pl = patrimonio_liquido * 0.50 if patrimonio_liquido > 0 else 0.0
     teto_mensal = capacidade_mensal * 6.0 if capacidade_mensal > 0 else 0.0
     
@@ -510,20 +720,8 @@ def analisar_credito(dados: AnaliseCreditoInput):
     agora_iso = datetime.now(timezone.utc).isoformat()
 
     dados_contabeis_salvar = {
-        "balanco": {
-            "ativo_total": ativo_total,
-            "ativo_circulante": ativo_circulante,
-            "passivo_circulante": passivo_circulante,
-            "passivo_nao_circulante": passivo_nao_circulante,
-            "patrimonio_liquido": patrimonio_liquido,
-            "estoques": estoques
-        },
-        "dre": {
-            "receita_liquida": receita_liquida,
-            "lucro_bruto": lucro_bruto,
-            "ebitda": ebitda,
-            "lucro_liquido": lucro_liquido
-        },
+        "balanco": b,
+        "dre": d,
         "indices": {
             "liquidez_corrente": liq_corrente,
             "liquidez_seca": liq_seca,
@@ -536,6 +734,7 @@ def analisar_credito(dados: AnaliseCreditoInput):
             "roe": roe,
             "roa": roa
         },
+        "auditoria": auditoria,
         "pontos_fortes": pontos_fortes,
         "pontos_atencao": pontos_atencao
     }
@@ -566,7 +765,6 @@ def analisar_credito(dados: AnaliseCreditoInput):
         "created_at": agora_iso
     }
 
-    # 5. Gravação no Supabase (se configurado)
     gravou_supabase = False
     if supabase:
         try:
@@ -598,7 +796,6 @@ def analisar_credito(dados: AnaliseCreditoInput):
         except Exception as e:
             print(f"Aviso ao gravar no Supabase: {e}")
 
-    # Mantém no cache em memória para disponibilidade imediata
     local_analises_cache.insert(0, registro)
 
     return {
@@ -608,6 +805,7 @@ def analisar_credito(dados: AnaliseCreditoInput):
         "status_decisao": decisao,
         "limite_sugerido": limite_sugerido,
         "capacidade_pagamento_mensal": capacidade_mensal,
+        "auditoria": auditoria,
         "indices": dados_contabeis_salvar["indices"],
         "contas": {
             "ativo_total": ativo_total,

@@ -7,6 +7,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bibliotecas de Leitura Real de Arquivos Binários (PDF e Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
         :root {
             --bg-body: #0a0f1d;
@@ -186,7 +191,7 @@
         .subtitle {
             color: var(--text-muted);
             font-size: 0.95rem;
-            max-width: 760px;
+            max-width: 780px;
             line-height: 1.5;
         }
 
@@ -346,9 +351,16 @@
             box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-1px);
             box-shadow: 0 6px 20px rgba(6, 182, 212, 0.45);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
         }
 
         .btn-secondary {
@@ -787,6 +799,140 @@
             color: var(--primary);
         }
 
+        /* Painel de Auditoria Contábil por IA */
+        .auditoria-panel {
+            margin-top: 24px;
+            border-radius: var(--radius-md);
+            padding: 22px;
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+            background: var(--bg-card-subtle);
+        }
+
+        .auditoria-panel.neutro {
+            border-color: rgba(255, 255, 255, 0.1);
+            background: rgba(31, 41, 61, 0.3);
+        }
+
+        .auditoria-panel.aprovado {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.06);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+        }
+
+        .auditoria-panel.rejeitado {
+            border-color: rgba(244, 63, 94, 0.5);
+            background: rgba(244, 63, 94, 0.08);
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.15);
+        }
+
+        .auditoria-panel.aviso {
+            border-color: rgba(245, 158, 11, 0.4);
+            background: rgba(245, 158, 11, 0.07);
+        }
+
+        .auditoria-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .auditoria-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+        }
+
+        .auditoria-badge {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .auditoria-badge.aprovado {
+            background: var(--emerald-bg);
+            color: var(--emerald);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .auditoria-badge.rejeitado {
+            background: var(--rose-bg);
+            color: var(--rose);
+            border: 1px solid rgba(244, 63, 94, 0.5);
+            animation: pulseRed 2s infinite;
+        }
+
+        @keyframes pulseRed {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(244, 63, 94, 0); }
+        }
+
+        .auditoria-badge.aviso {
+            background: var(--amber-bg);
+            color: var(--amber);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .auditoria-badge.neutro {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .auditoria-diagnostico {
+            font-size: 0.88rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .auditoria-lista-erros {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .auditoria-lista-erros li {
+            font-size: 0.84rem;
+            color: #fca5a5;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.4;
+        }
+
+        .auditoria-lista-alertas {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .auditoria-lista-alertas li {
+            font-size: 0.84rem;
+            color: #fde68a;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.4;
+        }
+
         /* Step 3 - Cruzamento de Indicadores */
         .indices-grid {
             display: grid;
@@ -1175,7 +1321,7 @@
             body { background: #fff; color: #000; }
             .sidebar, .nav-menu, .btn, .steps-container, .dropzone, .actions-bar, .input-row { display: none !important; }
             .main-wrapper { padding: 0; max-width: 100%; }
-            .glass-card, .result-panel, .company-panel, .contas-card, .indice-card {
+            .glass-card, .result-panel, .company-panel, .contas-card, .indice-card, .auditoria-panel {
                 background: #fff !important; color: #000 !important; border: 1px solid #ccc !important; box-shadow: none !important;
             }
             .gauge-number, .highlight-value, h1, h2, h3, .company-name, .indice-val { color: #000 !important; }
@@ -1225,7 +1371,7 @@
 
         <div class="sidebar-footer">
             <div class="status-dot"></div>
-            <div class="status-text">Motor IA Contábil · v1.2</div>
+            <div class="status-text">Motor IA Contábil · v1.3</div>
         </div>
     </aside>
 
@@ -1240,7 +1386,7 @@
                     Esteira Inteligente de Crédito B2B
                 </div>
                 <h1>Análise Contábil & Rating de Crédito</h1>
-                <p class="subtitle">Consulte os dados cadastrais da empresa, faça upload do Balanço Patrimonial e DRE para carregamento automático das contas contábeis, cruzamento de índices e apuração dos KPIs de crédito.</p>
+                <p class="subtitle">Consulte o CNPJ, faça o upload dos arquivos reais de Balanço e DRE (PDF ou Excel). A inteligência artificial descarrega as contas e realiza a auditoria contábil cruzada, rejeitando demonstrativos inconsistentes.</p>
             </header>
 
             <!-- 3-Step Wizard Header -->
@@ -1256,14 +1402,14 @@
                     <div class="step-badge" id="stepBadge2">2</div>
                     <div class="step-info">
                         <b>02 · Balanço & DRE</b>
-                        <span>Upload e extração das contas</span>
+                        <span>Extração e Auditoria por IA</span>
                     </div>
                 </div>
                 <div class="step-card" id="stepCard3">
                     <div class="step-badge" id="stepBadge3">3</div>
                     <div class="step-info">
                         <b>03 · Índices & Decisão</b>
-                        <span>Cruzamento contábil e Score IA</span>
+                        <span>Cruzamento e Score de Crédito</span>
                     </div>
                 </div>
             </div>
@@ -1348,8 +1494,8 @@
                 <!-- STEP 2: DOCUMENTS & CONTAS CONTÁBEIS -->
                 <div class="step-section" id="stepSectionDocs">
                     <div class="card-header">
-                        <h2>2. Análise de Balanço Patrimonial e DRE</h2>
-                        <p>Faça o upload dos demonstrativos contábeis para extração automática das principais contas patrimoniais e de resultado.</p>
+                        <h2>2. Upload e Auditoria de Balanço Patrimonial e DRE</h2>
+                        <p>Faça o upload dos arquivos reais (PDF, Excel .xlsx ou CSV). Os dados serão descarregados diretamente nas tabelas abaixo e submetidos à auditoria cruzada por inteligência artificial.</p>
                     </div>
 
                     <!-- Upload Zones -->
@@ -1358,14 +1504,14 @@
                             <input type="file" id="fileBalanco" accept=".pdf,.xls,.xlsx,.csv,.txt">
                             <div class="dropzone-icon">🏛️</div>
                             <h3>Balanço Patrimonial</h3>
-                            <p>Arraste PDF, Excel (.xlsx, .xls) ou CSV</p>
+                            <p>Arraste arquivo PDF, Excel (.xlsx, .xls) ou CSV</p>
                             <span class="file-name" id="fileNameBalanco" style="display:none;"></span>
                         </label>
                         <label class="dropzone" id="dropzoneDre">
                             <input type="file" id="fileDre" accept=".pdf,.xls,.xlsx,.csv,.txt">
                             <div class="dropzone-icon">📈</div>
                             <h3>Demonstração do Resultado (DRE)</h3>
-                            <p>Arraste PDF, Excel (.xlsx, .xls) ou CSV</p>
+                            <p>Arraste arquivo PDF, Excel (.xlsx, .xls) ou CSV</p>
                             <span class="file-name" id="fileNameDre" style="display:none;"></span>
                         </label>
                     </div>
@@ -1377,11 +1523,11 @@
                                 🚀 Carregar Exemplo Contábil Realista
                             </button>
                             <button type="button" class="btn btn-secondary" id="btnLimparContas">
-                                🔄 Limpar Contas
+                                🔄 Zerar Contas
                             </button>
                         </div>
-                        <div id="extracaoStatusChip" style="font-size: 0.82rem; color: var(--emerald); font-weight: 600;">
-                            ✓ Contas contábeis sincronizadas
+                        <div id="extracaoStatusChip" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">
+                            Aguardando upload dos arquivos contábeis...
                         </div>
                     </div>
 
@@ -1406,21 +1552,28 @@
                                     <label class="conta-label" for="accDisponibilidades">Disponibilidades / Caixa & Bancos</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accDisponibilidades" class="conta-input" value="350000">
+                                        <input type="number" step="any" id="accDisponibilidades" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
                                     <label class="conta-label" for="accContasReceber">Contas a Receber / Clientes</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accContasReceber" class="conta-input" value="680000">
+                                        <input type="number" step="any" id="accContasReceber" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
                                     <label class="conta-label" for="accEstoques">Estoques / Mercadorias</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accEstoques" class="conta-input" value="370000">
+                                        <input type="number" step="any" id="accEstoques" class="conta-input" value="0" placeholder="0,00">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accAtivoCirculante" style="font-weight: 700; color: #fff;">Ativo Circulante Total</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accAtivoCirculante" class="conta-input" value="0" placeholder="0,00" style="border-color: var(--primary);">
                                     </div>
                                 </div>
                             </div>
@@ -1434,14 +1587,21 @@
                                     <label class="conta-label" for="accRealizavelLp">Realizável a Longo Prazo (RLP)</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accRealizavelLp" class="conta-input" value="120000">
+                                        <input type="number" step="any" id="accRealizavelLp" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
                                     <label class="conta-label" for="accImobilizado">Imobilizado & Intangível</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accImobilizado" class="conta-input" value="480000">
+                                        <input type="number" step="any" id="accImobilizado" class="conta-input" value="0" placeholder="0,00">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accAtivoNaoCirculante" style="font-weight: 700; color: #fff;">Ativo Não Circulante Total</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accAtivoNaoCirculante" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                             </div>
@@ -1455,14 +1615,21 @@
                                     <label class="conta-label" for="accFornecedores">Fornecedores a Pagar</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accFornecedores" class="conta-input" value="420000">
+                                        <input type="number" step="any" id="accFornecedores" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
                                     <label class="conta-label" for="accEmprestimosCp">Empréstimos & Financiamentos CP</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accEmprestimosCp" class="conta-input" value="380000">
+                                        <input type="number" step="any" id="accEmprestimosCp" class="conta-input" value="0" placeholder="0,00">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accPassivoCirculante" style="font-weight: 700; color: #fff;">Passivo Circulante Total</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accPassivoCirculante" class="conta-input" value="0" placeholder="0,00" style="border-color: var(--amber);">
                                     </div>
                                 </div>
                             </div>
@@ -1472,31 +1639,44 @@
                                     <span>Passivo Não Circulante & Patrimônio Líquido</span>
                                 </div>
                                 <div class="conta-row">
-                                    <label class="conta-label" for="accFinanciamentosLp">Financiamentos a Longo Prazo (LP)</label>
+                                    <label class="conta-label" for="accFinanciamentosLp">Financiamentos LP</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accFinanciamentosLp" class="conta-input" value="280000">
+                                        <input type="number" step="any" id="accFinanciamentosLp" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
-                                    <label class="conta-label" for="accPatrimonioLiquido">Patrimônio Líquido (PL)</label>
+                                    <label class="conta-label" for="accPassivoNaoCirculante" style="font-weight: 700; color: #fff;">Passivo Não Circulante Total</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accPatrimonioLiquido" class="conta-input" value="920000">
+                                        <input type="number" step="any" id="accPassivoNaoCirculante" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
-                                    <label class="conta-label" for="accCapitalSocial">Capital Social Registrado</label>
+                                    <label class="conta-label" for="accPatrimonioLiquido" style="font-weight: 700; color: var(--emerald);">Patrimônio Líquido (PL)</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accCapitalSocial" class="conta-input" value="500000">
+                                        <input type="number" step="any" id="accPatrimonioLiquido" class="conta-input" value="0" placeholder="0,00" style="font-weight:700; border-color: var(--emerald);">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accCapitalSocial">Capital Social</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accCapitalSocial" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                             </div>
 
                             <div class="conta-total-row">
-                                <strong>Total do Ativo Calculado:</strong>
-                                <span id="lblTotalAtivoCalc">R$ 2.000.000,00</span>
+                                <div>
+                                    <strong>Ativo Total no Balanço:</strong>
+                                    <div style="font-size: 0.72rem; color: var(--text-muted);">Passivo + PL calculado: <span id="lblPassivoPlCalc">R$ 0,00</span></div>
+                                </div>
+                                <div class="conta-input-wrap" style="width: 190px;">
+                                    <span>R$</span>
+                                    <input type="number" step="any" id="accAtivoTotal" class="conta-input" value="0" placeholder="0,00" style="font-weight: 800; font-size: 1rem; color: var(--primary);">
+                                </div>
                             </div>
                         </div>
 
@@ -1517,21 +1697,21 @@
                                     <label class="conta-label" for="accReceitaBruta">Receita Operacional Bruta</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accReceitaBruta" class="conta-input" value="4800000">
+                                        <input type="number" step="any" id="accReceitaBruta" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
-                                    <label class="conta-label" for="accDeducoes">Deduções da Receita / Impostos</label>
+                                    <label class="conta-label" for="accDeducoes">Deduções da Receita / Tributos</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accDeducoes" class="conta-input" value="600000">
+                                        <input type="number" step="any" id="accDeducoes" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
                                     <label class="conta-label" for="accReceitaLiquida" style="font-weight: 700; color:#fff;">Receita Operacional Líquida</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accReceitaLiquida" class="conta-input" value="4200000" style="font-weight:700; border-color:var(--primary);">
+                                        <input type="number" step="any" id="accReceitaLiquida" class="conta-input" value="0" placeholder="0,00" style="font-weight:700; border-color:var(--primary);">
                                     </div>
                                 </div>
                             </div>
@@ -1544,21 +1724,21 @@
                                     <label class="conta-label" for="accCustosVendas">Custos das Vendas (CPV / CMV)</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accCustosVendas" class="conta-input" value="2600000">
+                                        <input type="number" step="any" id="accCustosVendas" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
                                     <label class="conta-label" for="accLucroBruto" style="font-weight: 700; color:#fff;">Lucro Bruto</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accLucroBruto" class="conta-input" value="1600000">
+                                        <input type="number" step="any" id="accLucroBruto" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
                                     <label class="conta-label" for="accDespesasOp">Despesas Operacionais (Adm / Com)</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accDespesasOp" class="conta-input" value="850000">
+                                        <input type="number" step="any" id="accDespesasOp" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                             </div>
@@ -1571,44 +1751,67 @@
                                     <label class="conta-label" for="accEbitda" style="font-weight: 700; color:var(--emerald);">EBITDA / LAJIDA</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accEbitda" class="conta-input" value="750000" style="font-weight:700; color:var(--emerald);">
+                                        <input type="number" step="any" id="accEbitda" class="conta-input" value="0" placeholder="0,00" style="font-weight:700; color:var(--emerald);">
                                     </div>
                                 </div>
                                 <div class="conta-row">
                                     <label class="conta-label" for="accDepreciacao">Depreciação & Amortização</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accDepreciacao" class="conta-input" value="60000">
+                                        <input type="number" step="any" id="accDepreciacao" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
                                     <label class="conta-label" for="accResultadoFin">Resultado Financeiro Líquido</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accResultadoFin" class="conta-input" value="-90000">
+                                        <input type="number" step="any" id="accResultadoFin" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
                                     <label class="conta-label" for="accLucroLiquido" style="font-weight: 700; color:#fff;">Lucro Líquido do Exercício</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
-                                        <input type="number" step="any" id="accLucroLiquido" class="conta-input" value="480000" style="font-weight:700; border-color:var(--emerald);">
+                                        <input type="number" step="any" id="accLucroLiquido" class="conta-input" value="0" placeholder="0,00" style="font-weight:700; border-color:var(--emerald);">
                                     </div>
                                 </div>
                             </div>
 
                             <div class="conta-total-row">
                                 <strong>Margem Líquida DRE:</strong>
-                                <span id="lblMargemLiquidaCalc">11.4%</span>
+                                <span id="lblMargemLiquidaCalc">0.0%</span>
                             </div>
                         </div>
 
                     </div>
 
+                    <!-- PAINEL DE AUDITORIA CONTÁBIL POR IA (COM REJEIÇÃO) -->
+                    <div class="auditoria-panel neutro" id="painelAuditoriaIA">
+                        <div class="auditoria-header">
+                            <div class="auditoria-title">
+                                <span id="iconeAuditoria">🤖</span>
+                                <span>Auditoria Contábil por Inteligência Artificial</span>
+                            </div>
+                            <span class="auditoria-badge neutro" id="badgeAuditoriaStatus">Aguardando Dados</span>
+                        </div>
+                        <div class="auditoria-diagnostico" id="textoAuditoriaDiagnostico">
+                            Aguardando upload e extração dos demonstrativos para verificação de consistência e integridade contábil.
+                        </div>
+                        
+                        <!-- Lista de Erros Críticos (Rejeição) -->
+                        <ul class="auditoria-lista-erros" id="listaErrosAuditoria" style="display: none;"></ul>
+
+                        <!-- Lista de Alertas -->
+                        <ul class="auditoria-lista-alertas" id="listaAlertasAuditoria" style="display: none;"></ul>
+                    </div>
+
                     <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 24px;">
-                        <button class="btn btn-primary" id="btnAvancarIndices">
+                        <button class="btn btn-primary" id="btnAvancarIndices" disabled>
                             Avançar para Cruzamento de Índices & KPIs de Crédito
                         </button>
+                        <span id="avisoBloqueioAuditoria" style="font-size: 0.82rem; color: var(--rose); display: none;">
+                            ⚠️ O avanço está bloqueado até que as inconsistências contábeis sejam sanadas ou arquivos corretos sejam enviados.
+                        </span>
                     </div>
                 </div>
 
@@ -1625,81 +1828,81 @@
                         <!-- 1. Liquidez Corrente -->
                         <div class="indice-card">
                             <div class="indice-title">Liquidez Corrente</div>
-                            <div class="indice-val" id="cardLiqCorrente">1.75x</div>
+                            <div class="indice-val" id="cardLiqCorrente">0.00x</div>
                             <div class="indice-formula">Ativo Circ. / Passivo Circ.</div>
-                            <span class="indice-status status-good" id="badgeLiqCorrente">Ótimo (≥ 1.5x)</span>
+                            <span class="indice-status status-warn" id="badgeLiqCorrente">Aguardando dados</span>
                         </div>
 
                         <!-- 2. Liquidez Seca -->
                         <div class="indice-card">
                             <div class="indice-title">Liquidez Seca</div>
-                            <div class="indice-val" id="cardLiqSeca">1.29x</div>
+                            <div class="indice-val" id="cardLiqSeca">0.00x</div>
                             <div class="indice-formula">(Ativo Circ. - Estoques) / Pass. Circ.</div>
-                            <span class="indice-status status-good" id="badgeLiqSeca">Saudável (≥ 1.0x)</span>
+                            <span class="indice-status status-warn" id="badgeLiqSeca">Aguardando dados</span>
                         </div>
 
                         <!-- 3. Liquidez Geral -->
                         <div class="indice-card">
                             <div class="indice-title">Liquidez Geral</div>
-                            <div class="indice-val" id="cardLiqGeral">1.41x</div>
+                            <div class="indice-val" id="cardLiqGeral">0.00x</div>
                             <div class="indice-formula">(AC + RLP) / Exigível Total</div>
-                            <span class="indice-status status-good" id="badgeLiqGeral">Equilibrado</span>
+                            <span class="indice-status status-warn" id="badgeLiqGeral">Aguardando dados</span>
                         </div>
 
                         <!-- 4. Endividamento Geral -->
                         <div class="indice-card">
                             <div class="indice-title">Endividamento Geral</div>
-                            <div class="indice-val" id="cardEndivGeral">54.0%</div>
+                            <div class="indice-val" id="cardEndivGeral">0.0%</div>
                             <div class="indice-formula">Exigível Total / Ativo Total</div>
-                            <span class="indice-status status-good" id="badgeEndivGeral">Controlado (≤ 65%)</span>
+                            <span class="indice-status status-warn" id="badgeEndivGeral">Aguardando dados</span>
                         </div>
 
                         <!-- 5. Perfil da Dívida CP -->
                         <div class="indice-card">
                             <div class="indice-title">Perfil da Dívida (CP)</div>
-                            <div class="indice-val" id="cardPerfilDivida">74.1%</div>
+                            <div class="indice-val" id="cardPerfilDivida">0.0%</div>
                             <div class="indice-formula">Pass. Circ. / Exigível Total</div>
-                            <span class="indice-status status-warn" id="badgePerfilDivida">Atenção Curto Prazo</span>
+                            <span class="indice-status status-warn" id="badgePerfilDivida">Aguardando dados</span>
                         </div>
 
                         <!-- 6. Margem Bruta -->
                         <div class="indice-card">
                             <div class="indice-title">Margem Bruta</div>
-                            <div class="indice-val" id="cardMargemBruta">38.1%</div>
+                            <div class="indice-val" id="cardMargemBruta">0.0%</div>
                             <div class="indice-formula">Lucro Bruto / Receita Líquida</div>
-                            <span class="indice-status status-good" id="badgeMargemBruta">Forte</span>
+                            <span class="indice-status status-warn" id="badgeMargemBruta">Aguardando dados</span>
                         </div>
 
                         <!-- 7. Margem EBITDA -->
                         <div class="indice-card">
                             <div class="indice-title">Margem EBITDA</div>
-                            <div class="indice-val" id="cardMargemEbitda">17.9%</div>
+                            <div class="indice-val" id="cardMargemEbitda">0.0%</div>
                             <div class="indice-formula">EBITDA / Receita Líquida</div>
-                            <span class="indice-status status-good" id="badgeMargemEbitda">Excelente</span>
+                            <span class="indice-status status-warn" id="badgeMargemEbitda">Aguardando dados</span>
                         </div>
 
                         <!-- 8. Margem Líquida -->
                         <div class="indice-card">
                             <div class="indice-title">Margem Líquida</div>
-                            <div class="indice-val" id="cardMargemLiquida">11.4%</div>
+                            <div class="indice-val" id="cardMargemLiquida">0.0%</div>
                             <div class="indice-formula">Lucro Líquido / Receita Líquida</div>
-                            <span class="indice-status status-good" id="badgeMargemLiquida">Alta Rentabilidade</span>
+                            <span class="indice-status status-warn" id="badgeMargemLiquida">Aguardando dados</span>
                         </div>
 
                         <!-- 9. Retorno s/ PL (ROE) -->
                         <div class="indice-card">
                             <div class="indice-title">Retorno s/ PL (ROE)</div>
-                            <div class="indice-val" id="cardRoe">52.2%</div>
+                            <div class="indice-val" id="cardRoe">0.0%</div>
                             <div class="indice-formula">Lucro Líquido / Patrimônio Líquido</div>
-                            <span class="indice-status status-good" id="badgeRoe">Excelente Retorno</span>
+                            <span class="indice-status status-warn" id="badgeRoe">Aguardando dados</span>
                         </div>
 
                         <!-- 10. Retorno s/ Ativo (ROA) -->
                         <div class="indice-card">
                             <div class="indice-title">Retorno s/ Ativo (ROA)</div>
-                            <div class="indice-val" id="cardRoa">24.0%</div>
+                            <div class="indice-val" id="cardRoa">0.0%</div>
                             <div class="indice-formula">Lucro Líquido / Ativo Total</div>
-                            <span class="indice-status status-good" id="badgeRoa">Alta Eficiência</span>
+                            <span class="indice-status status-warn" id="badgeRoa">Aguardando dados</span>
                         </div>
 
                     </div>
@@ -1823,7 +2026,7 @@
                             </tr>
                         </thead>
                         <tbody id="carteiraTableBody">
-                            <tr><td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 30px;">Carregando histórico...</td></tr>
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-subtle); padding: 30px;">Carregando histórico do Supabase...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1894,9 +2097,15 @@
         const formatMoney = (val) => Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         const apiBase = window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '';
 
+        // Configure PDF.js worker
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
         // Application State
         let empresaAtual = null;
         let analisesCarteiraCache = [];
+        let statusAuditoriaAtual = { aprovado: false };
 
         // Toast Helper
         function showToast(message, type = 'info') {
@@ -1910,7 +2119,7 @@
                 toast.style.transform = 'translateY(10px)';
                 toast.style.transition = 'all 0.3s ease';
                 setTimeout(() => toast.remove(), 300);
-            }, 4000);
+            }, 4500);
         }
 
         // View Switcher
@@ -2003,7 +2212,6 @@
                 byId('compPorte').textContent = data.porte || 'Não informado';
                 byId('compNatureza').textContent = data.natureza_juridica || 'Não informada';
 
-                // Se houver capital social retornado no CNPJ, alimenta a conta de capital social no Balanço
                 if (data.capital_social && Number(data.capital_social) > 0) {
                     byId('accCapitalSocial').value = Number(data.capital_social);
                     recalcularIndicesEmTempoReal();
@@ -2082,10 +2290,54 @@
         });
 
         // ==========================================================
-        // LEITURA, UPLOAD E PARSER DE DOCUMENTOS
+        // PARSERS BINÁRIOS (PDF.js e SheetJS) & EXTRAÇÃO REAL
         // ==========================================================
 
-        function lerArquivoTexto(file) {
+        async function extrairTextoDePdf(arrayBuffer) {
+            try {
+                if (!window.pdfjsLib) return '';
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let textoFinal = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    const linhas = content.items.map(item => item.str);
+                    textoFinal += `\n--- PÁGINA ${i} DO PDF ---\n` + linhas.join(' ');
+                }
+                return textoFinal;
+            } catch (e) {
+                console.error('Erro ao ler PDF no navegador:', e);
+                return '';
+            }
+        }
+
+        function extrairTextoDeExcel(arrayBuffer) {
+            try {
+                if (!window.XLSX) return '';
+                const wb = XLSX.read(arrayBuffer, { type: 'array' });
+                let textoFinal = '';
+                wb.SheetNames.forEach(sheetName => {
+                    const sheet = wb.Sheets[sheetName];
+                    const csv = XLSX.utils.sheet_to_csv(sheet);
+                    textoFinal += `\n--- PLANILHA: ${sheetName} ---\n` + csv;
+                });
+                return textoFinal;
+            } catch (e) {
+                console.error('Erro ao ler Excel no navegador:', e);
+                return '';
+            }
+        }
+
+        function lerArquivoComoArrayBuffer(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = () => resolve(null);
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function lerArquivoComoTexto(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (e) => resolve(e.target.result || '');
@@ -2099,29 +2351,57 @@
             byId(`fileName${tipoDoc}`).textContent = `✓ ${file.name}`;
             byId(`fileName${tipoDoc}`).style.display = 'inline-block';
 
-            showToast(`Processando ${file.name}... Extraindo contas contábeis.`, 'info');
+            byId('extracaoStatusChip').textContent = `Lendo ${file.name} e descarregando contas contábeis...`;
+            byId('extracaoStatusChip').style.color = 'var(--primary)';
+            showToast(`Lendo e analisando ${file.name}...`, 'info');
 
-            // Leitura de texto local
-            const texto = await lerArquivoTexto(file);
-            if (texto && texto.length > 20) {
+            let textoExtraido = '';
+            const nomeLower = file.name.toLowerCase();
+
+            // Extração binária no navegador
+            if (nomeLower.endsWith('.pdf')) {
+                const buffer = await lerArquivoComoArrayBuffer(file);
+                if (buffer) {
+                    textoExtraido = await extrairTextoDePdf(buffer);
+                }
+            } else if (nomeLower.endsWith('.xlsx') || nomeLower.endsWith('.xls')) {
+                const buffer = await lerArquivoComoArrayBuffer(file);
+                if (buffer) {
+                    textoExtraido = extrairTextoDeExcel(buffer);
+                }
+            } else {
+                textoExtraido = await lerArquivoComoTexto(file);
+            }
+
+            // Se obteve texto limpo no front, envia para extração inteligente
+            if (textoExtraido && textoExtraido.length > 30) {
                 try {
                     const res = await fetch(`${apiBase}/api/v1/documentos/extrair`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ texto: texto })
+                        body: JSON.stringify({ texto: textoExtraido })
                     });
                     if (res.ok) {
                         const dados = await res.json();
-                        carregarContasNoFormulario(dados.balanco, dados.dre);
-                        showToast(`${dados.total_contas_detectadas || 'Várias'} contas contábeis identificadas e vinculadas!`, 'success');
+                        carregarContasNoFormulario(dados.balanco, dados.dre, tipoDoc);
+                        atualizarPainelAuditoria(dados.auditoria);
+                        
+                        if (dados.total_contas_detectadas > 0) {
+                            byId('extracaoStatusChip').textContent = `✓ ${dados.total_contas_detectadas} contas descarregadas de ${file.name}`;
+                            byId('extracaoStatusChip').style.color = 'var(--emerald)';
+                            showToast(`${dados.total_contas_detectadas} contas identificadas e descarregadas!`, 'success');
+                        } else {
+                            byId('extracaoStatusChip').textContent = `Nenhuma conta padrão detectada em ${file.name}. Preencha manualmente.`;
+                            byId('extracaoStatusChip').style.color = 'var(--amber)';
+                        }
                         return;
                     }
                 } catch (e) {
-                    console.log('Falha na extração de texto via API, usando parser local:', e);
+                    console.log('Tentando upload multipart no servidor...', e);
                 }
             }
 
-            // Upload multipart como fallback
+            // Fallback: Upload direto multipart para processamento no servidor com pypdf/openpyxl
             const formData = new FormData();
             if (tipoDoc === 'Balanco') {
                 formData.append('arquivo_balanco', file);
@@ -2136,15 +2416,22 @@
                 });
                 if (res.ok) {
                     const dados = await res.json();
-                    carregarContasNoFormulario(dados.balanco, dados.dre);
-                    showToast('Contas contábeis carregadas a partir do arquivo!', 'success');
+                    carregarContasNoFormulario(dados.balanco, dados.dre, tipoDoc);
+                    atualizarPainelAuditoria(dados.auditoria);
+                    byId('extracaoStatusChip').textContent = `✓ Contas contábeis descarregadas pelo servidor`;
+                    byId('extracaoStatusChip').style.color = 'var(--emerald)';
+                    showToast('Arquivo processado e contas descarregadas!', 'success');
+                } else {
+                    throw new Error('Falha no upload');
                 }
             } catch (err) {
-                showToast('Arquivo recebido. As contas podem ser ajustadas manualmente abaixo.', 'info');
+                byId('extracaoStatusChip').textContent = `Aviso: ajuste ou confira os valores nos campos abaixo.`;
+                byId('extracaoStatusChip').style.color = 'var(--amber)';
+                showToast('Arquivo carregado. Por favor, confira os números nas tabelas.', 'info');
             }
         }
 
-        // Listeners dos inputs de arquivo
+        // Listeners de upload
         byId('fileBalanco').addEventListener('change', (e) => {
             if (e.target.files && e.target.files[0]) {
                 processarArquivoContabil(e.target.files[0], 'Balanco');
@@ -2163,11 +2450,16 @@
                 disponibilidades: 420000,
                 contas_a_receber: 860000,
                 estoques: 470000,
+                ativo_circulante: 1750000,
                 realizavel_longo_prazo: 150000,
                 imobilizado: 600000,
+                ativo_nao_circulante: 750000,
+                ativo_total: 2500000,
                 fornecedores: 510000,
                 emprestimos_curto_prazo: 450000,
+                passivo_circulante: 960000,
                 financiamentos_longo_prazo: 340000,
+                passivo_nao_circulante: 340000,
                 patrimonio_liquido: 1200000,
                 capital_social: 700000
             };
@@ -2186,50 +2478,64 @@
             };
 
             carregarContasNoFormulario(balancoExemplo, dreExemplo);
+            byId('extracaoStatusChip').textContent = '✓ Exemplo contábil perfeitamente conciliado carregado!';
+            byId('extracaoStatusChip').style.color = 'var(--emerald)';
             showToast('Demonstrações contábeis modelo carregadas com sucesso!', 'success');
         });
 
-        // Limpar Contas
+        // Zerar Contas
         byId('btnLimparContas').addEventListener('click', () => {
             document.querySelectorAll('.conta-input').forEach(input => {
                 input.value = 0;
             });
+            byId('extracaoStatusChip').textContent = 'Contas zeradas. Aguardando novo upload.';
+            byId('extracaoStatusChip').style.color = 'var(--text-muted)';
             recalcularIndicesEmTempoReal();
             showToast('Contas contábeis zeradas.', 'info');
         });
 
-        function carregarContasNoFormulario(b = {}, d = {}) {
-            if (b) {
-                if (b.disponibilidades) byId('accDisponibilidades').value = b.disponibilidades;
-                if (b.contas_a_receber) byId('accContasReceber').value = b.contas_a_receber;
-                if (b.estoques) byId('accEstoques').value = b.estoques;
-                if (b.realizavel_longo_prazo) byId('accRealizavelLp').value = b.realizavel_longo_prazo;
-                if (b.imobilizado) byId('accImobilizado').value = b.imobilizado;
-                if (b.fornecedores) byId('accFornecedores').value = b.fornecedores;
-                if (b.emprestimos_curto_prazo) byId('accEmprestimosCp').value = b.emprestimos_curto_prazo;
-                if (b.financiamentos_longo_prazo) byId('accFinanciamentosLp').value = b.financiamentos_longo_prazo;
-                if (b.patrimonio_liquido) byId('accPatrimonioLiquido').value = b.patrimonio_liquido;
-                if (b.capital_social) byId('accCapitalSocial').value = b.capital_social;
+        function carregarContasNoFormulario(b = {}, d = {}, tipoOrigem = null) {
+            // Descarrega contas do Balanço se disponíveis
+            if (b && Object.keys(b).length > 0) {
+                if (b.disponibilidades !== undefined && b.disponibilidades !== 0) byId('accDisponibilidades').value = b.disponibilidades;
+                if (b.contas_a_receber !== undefined && b.contas_a_receber !== 0) byId('accContasReceber').value = b.contas_a_receber;
+                if (b.estoques !== undefined && b.estoques !== 0) byId('accEstoques').value = b.estoques;
+                if (b.ativo_circulante !== undefined && b.ativo_circulante !== 0) byId('accAtivoCirculante').value = b.ativo_circulante;
+                
+                if (b.realizavel_longo_prazo !== undefined && b.realizavel_longo_prazo !== 0) byId('accRealizavelLp').value = b.realizavel_longo_prazo;
+                if (b.imobilizado !== undefined && b.imobilizado !== 0) byId('accImobilizado').value = b.imobilizado;
+                if (b.ativo_nao_circulante !== undefined && b.ativo_nao_circulante !== 0) byId('accAtivoNaoCirculante').value = b.ativo_nao_circulante;
+                if (b.ativo_total !== undefined && b.ativo_total !== 0) byId('accAtivoTotal').value = b.ativo_total;
+
+                if (b.fornecedores !== undefined && b.fornecedores !== 0) byId('accFornecedores').value = b.fornecedores;
+                if (b.emprestimos_curto_prazo !== undefined && b.emprestimos_curto_prazo !== 0) byId('accEmprestimosCp').value = b.emprestimos_curto_prazo;
+                if (b.passivo_circulante !== undefined && b.passivo_circulante !== 0) byId('accPassivoCirculante').value = b.passivo_circulante;
+
+                if (b.financiamentos_longo_prazo !== undefined && b.financiamentos_longo_prazo !== 0) byId('accFinanciamentosLp').value = b.financiamentos_longo_prazo;
+                if (b.passivo_nao_circulante !== undefined && b.passivo_nao_circulante !== 0) byId('accPassivoNaoCirculante').value = b.passivo_nao_circulante;
+                if (b.patrimonio_liquido !== undefined && b.patrimonio_liquido !== 0) byId('accPatrimonioLiquido').value = b.patrimonio_liquido;
+                if (b.capital_social !== undefined && b.capital_social !== 0) byId('accCapitalSocial').value = b.capital_social;
             }
 
-            if (d) {
-                if (d.receita_bruta) byId('accReceitaBruta').value = d.receita_bruta;
-                if (d.deducoes) byId('accDeducoes').value = d.deducoes;
-                if (d.receita_liquida) byId('accReceitaLiquida').value = d.receita_liquida;
-                if (d.custos_vendas) byId('accCustosVendas').value = d.custos_vendas;
-                if (d.lucro_bruto) byId('accLucroBruto').value = d.lucro_bruto;
-                if (d.despesas_operacionais) byId('accDespesasOp').value = d.despesas_operacionais;
-                if (d.ebitda) byId('accEbitda').value = d.ebitda;
-                if (d.depreciacao_amortizacao) byId('accDepreciacao').value = d.depreciacao_amortizacao;
-                if (d.resultado_financeiro) byId('accResultadoFin').value = d.resultado_financeiro;
-                if (d.lucro_liquido) byId('accLucroLiquido').value = d.lucro_liquido;
+            // Descarrega contas da DRE se disponíveis
+            if (d && Object.keys(d).length > 0) {
+                if (d.receita_bruta !== undefined && d.receita_bruta !== 0) byId('accReceitaBruta').value = d.receita_bruta;
+                if (d.deducoes !== undefined && d.deducoes !== 0) byId('accDeducoes').value = d.deducoes;
+                if (d.receita_liquida !== undefined && d.receita_liquida !== 0) byId('accReceitaLiquida').value = d.receita_liquida;
+                if (d.custos_vendas !== undefined && d.custos_vendas !== 0) byId('accCustosVendas').value = d.custos_vendas;
+                if (d.lucro_bruto !== undefined && d.lucro_bruto !== 0) byId('accLucroBruto').value = d.lucro_bruto;
+                if (d.despesas_operacionais !== undefined && d.despesas_operacionais !== 0) byId('accDespesasOp').value = d.despesas_operacionais;
+                if (d.ebitda !== undefined && d.ebitda !== 0) byId('accEbitda').value = d.ebitda;
+                if (d.depreciacao_amortizacao !== undefined && d.depreciacao_amortizacao !== 0) byId('accDepreciacao').value = d.depreciacao_amortizacao;
+                if (d.resultado_financeiro !== undefined && d.resultado_financeiro !== 0) byId('accResultadoFin').value = d.resultado_financeiro;
+                if (d.lucro_liquido !== undefined && d.lucro_liquido !== 0) byId('accLucroLiquido').value = d.lucro_liquido;
             }
 
             recalcularIndicesEmTempoReal();
         }
 
         // ==========================================================
-        // CRUZAMENTO CONTÁBIL E RECÁLCULO DINÂMICO DOS ÍNDICES
+        // CRUZAMENTO CONTÁBIL, AUDITORIA POR IA E RECÁLCULO
         // ==========================================================
 
         function obterValoresContas() {
@@ -2237,11 +2543,16 @@
                 disponibilidades: +byId('accDisponibilidades').value || 0,
                 contas_a_receber: +byId('accContasReceber').value || 0,
                 estoques: +byId('accEstoques').value || 0,
+                ativo_circulante: +byId('accAtivoCirculante').value || 0,
                 realizavel_lp: +byId('accRealizavelLp').value || 0,
                 imobilizado: +byId('accImobilizado').value || 0,
+                ativo_nao_circulante: +byId('accAtivoNaoCirculante').value || 0,
+                ativo_total: +byId('accAtivoTotal').value || 0,
                 fornecedores: +byId('accFornecedores').value || 0,
                 emprestimos_cp: +byId('accEmprestimosCp').value || 0,
+                passivo_circulante: +byId('accPassivoCirculante').value || 0,
                 financiamentos_lp: +byId('accFinanciamentosLp').value || 0,
+                passivo_nao_circulante: +byId('accPassivoNaoCirculante').value || 0,
                 patrimonio_liquido: +byId('accPatrimonioLiquido').value || 0,
                 capital_social: +byId('accCapitalSocial').value || 0,
                 receita_bruta: +byId('accReceitaBruta').value || 0,
@@ -2261,25 +2572,53 @@
             const c = obterValoresContas();
 
             // Totalizadores do Balanço
-            const ativoCirculante = c.disponibilidades + c.contas_a_receber + c.estoques;
-            const ativoNaoCirculante = c.realizavel_lp + c.imobilizado;
-            const ativoTotal = ativoCirculante + ativoNaoCirculante;
+            let ativoCirculante = c.ativo_circulante;
+            const somaAc = c.disponibilidades + c.contas_a_receber + c.estoques;
+            if (ativoCirculante === 0 && somaAc > 0) {
+                ativoCirculante = somaAc;
+                byId('accAtivoCirculante').value = ativoCirculante;
+            }
 
-            const passivoCirculante = c.fornecedores + c.emprestimos_cp;
-            const passivoNaoCirculante = c.financiamentos_lp;
+            let ativoNaoCirculante = c.ativo_nao_circulante;
+            const somaAnc = c.realizavel_lp + c.imobilizado;
+            if (ativoNaoCirculante === 0 && somaAnc > 0) {
+                ativoNaoCirculante = somaAnc;
+                byId('accAtivoNaoCirculante').value = ativoNaoCirculante;
+            }
+
+            let ativoTotal = c.ativo_total;
+            if (ativoTotal === 0 && (ativoCirculante > 0 || ativoNaoCirculante > 0)) {
+                ativoTotal = ativoCirculante + ativoNaoCirculante;
+                byId('accAtivoTotal').value = ativoTotal;
+            }
+
+            let passivoCirculante = c.passivo_circulante;
+            const somaPc = c.fornecedores + c.emprestimos_cp;
+            if (passivoCirculante === 0 && somaPc > 0) {
+                passivoCirculante = somaPc;
+                byId('accPassivoCirculante').value = passivoCirculante;
+            }
+
+            let passivoNaoCirculante = c.passivo_nao_circulante;
+            if (passivoNaoCirculante === 0 && c.financiamentos_lp > 0) {
+                passivoNaoCirculante = c.financiamentos_lp;
+                byId('accPassivoNaoCirculante').value = passivoNaoCirculante;
+            }
+
             const exigivelTotal = passivoCirculante + passivoNaoCirculante;
+            const somaPassivoPl = exigivelTotal + c.patrimonio_liquido;
 
-            // Atualiza labels de totais do Balanço
+            // Labels de subtotais
             byId('subAtivoCirc').textContent = formatMoney(ativoCirculante);
             byId('subAtivoNaoCirc').textContent = formatMoney(ativoNaoCirculante);
             byId('subPassivoCirc').textContent = formatMoney(passivoCirculante);
             byId('badgeAtivoTotal').textContent = `Ativo Total: ${formatMoney(ativoTotal)}`;
-            byId('lblTotalAtivoCalc').textContent = formatMoney(ativoTotal);
+            byId('lblPassivoPlCalc').textContent = formatMoney(somaPassivoPl);
 
             // Totalizadores da DRE
             let recLiq = c.receita_liquida;
             if (recLiq === 0 && c.receita_bruta > 0) {
-                recLiq = c.receita_bruta - c.deducoes;
+                recLiq = Math.max(0, c.receita_bruta - c.deducoes);
                 byId('accReceitaLiquida').value = recLiq;
             }
 
@@ -2305,110 +2644,216 @@
             const mLiqPerc = recLiq > 0 ? ((lLiq / recLiq) * 100).toFixed(1) : '0.0';
             byId('lblMargemLiquidaCalc').textContent = `${mLiqPerc}%`;
 
-            // Cruzamentos Contábeis
-            // 1. Liquidez Corrente
-            const liqCorrente = passivoCirculante > 0 ? (ativoCirculante / passivoCirculante) : 1.5;
-            byId('cardLiqCorrente').textContent = `${liqCorrente.toFixed(2)}x`;
-            const badgeLC = byId('badgeLiqCorrente');
-            if (liqCorrente >= 1.5) {
-                badgeLC.textContent = 'Ótimo (≥ 1.5x)';
-                badgeLC.className = 'indice-status status-good';
-            } else if (liqCorrente >= 1.0) {
-                badgeLC.textContent = 'Equilibrado (≥ 1.0x)';
-                badgeLC.className = 'indice-status status-warn';
+            // Índices de Cruzamento
+            if (passivoCirculante > 0) {
+                const liqCorrente = ativoCirculante / passivoCirculante;
+                byId('cardLiqCorrente').textContent = `${liqCorrente.toFixed(2)}x`;
+                const bLC = byId('badgeLiqCorrente');
+                if (liqCorrente >= 1.5) { bLC.textContent = 'Ótimo (≥ 1.5x)'; bLC.className = 'indice-status status-good'; }
+                else if (liqCorrente >= 1.0) { bLC.textContent = 'Equilibrado'; bLC.className = 'indice-status status-warn'; }
+                else { bLC.textContent = 'Alerta (< 1.0x)'; bLC.className = 'indice-status status-bad'; }
+
+                const liqSeca = Math.max(0, ativoCirculante - c.estoques) / passivoCirculante;
+                byId('cardLiqSeca').textContent = `${liqSeca.toFixed(2)}x`;
+                const bLS = byId('badgeLiqSeca');
+                if (liqSeca >= 1.0) { bLS.textContent = 'Saudável (≥ 1.0x)'; bLS.className = 'indice-status status-good'; }
+                else { bLS.textContent = 'Abaixo de 1.0x'; bLS.className = 'indice-status status-warn'; }
             } else {
-                badgeLC.textContent = 'Alerta Crítico (< 1.0x)';
-                badgeLC.className = 'indice-status status-bad';
+                byId('cardLiqCorrente').textContent = '0.00x';
+                byId('cardLiqSeca').textContent = '0.00x';
             }
 
-            // 2. Liquidez Seca
-            const liqSeca = passivoCirculante > 0 ? (Math.max(0, ativoCirculante - c.estoques) / passivoCirculante) : 1.1;
-            byId('cardLiqSeca').textContent = `${liqSeca.toFixed(2)}x`;
-            const badgeLS = byId('badgeLiqSeca');
-            if (liqSeca >= 1.0) {
-                badgeLS.textContent = 'Saudável (≥ 1.0x)';
-                badgeLS.className = 'indice-status status-good';
-            } else if (liqSeca >= 0.7) {
-                badgeLS.textContent = 'Moderado';
-                badgeLS.className = 'indice-status status-warn';
-            } else {
-                badgeLS.textContent = 'Dependente de Estoques';
-                badgeLS.className = 'indice-status status-bad';
+            if (exigivelTotal > 0) {
+                const liqGeral = (ativoCirculante + c.realizavel_lp) / exigivelTotal;
+                byId('cardLiqGeral').textContent = `${liqGeral.toFixed(2)}x`;
+                const bLG = byId('badgeLiqGeral');
+                if (liqGeral >= 1.2) { bLG.textContent = 'Forte'; bLG.className = 'indice-status status-good'; }
+                else { bLG.textContent = 'Atenção'; bLG.className = 'indice-status status-warn'; }
+
+                const perfilDivida = (passivoCirculante / exigivelTotal) * 100;
+                byId('cardPerfilDivida').textContent = `${perfilDivida.toFixed(1)}%`;
+                const bPD = byId('badgePerfilDivida');
+                if (perfilDivida <= 65) { bPD.textContent = 'Alongado'; bPD.className = 'indice-status status-good'; }
+                else { bPD.textContent = 'Concentrado em CP'; bPD.className = 'indice-status status-warn'; }
             }
 
-            // 3. Liquidez Geral
-            const liqGeral = exigivelTotal > 0 ? ((ativoCirculante + c.realizavel_lp) / exigivelTotal) : liqCorrente;
-            byId('cardLiqGeral').textContent = `${liqGeral.toFixed(2)}x`;
-            const badgeLG = byId('badgeLiqGeral');
-            if (liqGeral >= 1.2) {
-                badgeLG.textContent = 'Forte (≥ 1.2x)';
-                badgeLG.className = 'indice-status status-good';
-            } else if (liqGeral >= 0.9) {
-                badgeLG.textContent = 'Adequado';
-                badgeLG.className = 'indice-status status-warn';
-            } else {
-                badgeLG.textContent = 'Vulnerável';
-                badgeLG.className = 'indice-status status-bad';
+            if (ativoTotal > 0) {
+                const endivGeral = (exigivelTotal / ativoTotal) * 100;
+                byId('cardEndivGeral').textContent = `${endivGeral.toFixed(1)}%`;
+                const bEG = byId('badgeEndivGeral');
+                if (endivGeral <= 50) { bEG.textContent = 'Conservador'; bEG.className = 'indice-status status-good'; }
+                else if (endivGeral <= 70) { bEG.textContent = 'Moderado'; bEG.className = 'indice-status status-warn'; }
+                else { bEG.textContent = 'Alavancado (>70%)'; bEG.className = 'indice-status status-bad'; }
+
+                const roa = (lLiq / ativoTotal) * 100;
+                byId('cardRoa').textContent = `${roa.toFixed(1)}%`;
+                byId('badgeRoa').className = roa >= 10 ? 'indice-status status-good' : 'indice-status status-warn';
             }
 
-            // 4. Endividamento Geral
-            const endivGeral = ativoTotal > 0 ? ((exigivelTotal / ativoTotal) * 100) : 50;
-            byId('cardEndivGeral').textContent = `${endivGeral.toFixed(1)}%`;
-            const badgeEG = byId('badgeEndivGeral');
-            if (endivGeral <= 50) {
-                badgeEG.textContent = 'Conservador (≤ 50%)';
-                badgeEG.className = 'indice-status status-good';
-            } else if (endivGeral <= 70) {
-                badgeEG.textContent = 'Moderado (≤ 70%)';
-                badgeEG.className = 'indice-status status-warn';
-            } else {
-                badgeEG.textContent = 'Alavancado (> 70%)';
-                badgeEG.className = 'indice-status status-bad';
+            if (recLiq > 0) {
+                const mBruta = (lBruto / recLiq) * 100;
+                byId('cardMargemBruta').textContent = `${mBruta.toFixed(1)}%`;
+
+                const mEbitda = (ebitda / recLiq) * 100;
+                byId('cardMargemEbitda').textContent = `${mEbitda.toFixed(1)}%`;
+
+                const mLiq = (lLiq / recLiq) * 100;
+                byId('cardMargemLiquida').textContent = `${mLiq.toFixed(1)}%`;
+                byId('badgeMargemLiquida').className = mLiq >= 8 ? 'indice-status status-good' : (mLiq > 0 ? 'indice-status status-warn' : 'indice-status status-bad');
             }
 
-            // 5. Perfil da Dívida
-            const perfilDivida = exigivelTotal > 0 ? ((passivoCirculante / exigivelTotal) * 100) : 50;
-            byId('cardPerfilDivida').textContent = `${perfilDivida.toFixed(1)}%`;
-            const badgePD = byId('badgePerfilDivida');
-            if (perfilDivida <= 60) {
-                badgePD.textContent = 'Alongado (Boa Estrutura)';
-                badgePD.className = 'indice-status status-good';
-            } else if (perfilDivida <= 75) {
-                badgePD.textContent = 'Concentrado em CP';
-                badgePD.className = 'indice-status status-warn';
-            } else {
-                badgePD.textContent = 'Pressão Imediata (>75%)';
-                badgePD.className = 'indice-status status-bad';
+            if (c.patrimonio_liquido > 0) {
+                const roe = (lLiq / c.patrimonio_liquido) * 100;
+                byId('cardRoe').textContent = `${roe.toFixed(1)}%`;
+                byId('badgeRoe').className = roe >= 15 ? 'indice-status status-good' : 'indice-status status-warn';
             }
 
-            // 6. Margens
-            const mBruta = recLiq > 0 ? ((lBruto / recLiq) * 100) : 35;
-            byId('cardMargemBruta').textContent = `${mBruta.toFixed(1)}%`;
-
-            const mEbitda = recLiq > 0 ? ((ebitda / recLiq) * 100) : 18;
-            byId('cardMargemEbitda').textContent = `${mEbitda.toFixed(1)}%`;
-
-            const mLiq = recLiq > 0 ? ((lLiq / recLiq) * 100) : 10;
-            byId('cardMargemLiquida').textContent = `${mLiq.toFixed(1)}%`;
-
-            // 7. ROE e ROA
-            const roe = c.patrimonio_liquido > 0 ? ((lLiq / c.patrimonio_liquido) * 100) : 0;
-            byId('cardRoe').textContent = `${roe.toFixed(1)}%`;
-
-            const roa = ativoTotal > 0 ? ((lLiq / ativoTotal) * 100) : 0;
-            byId('cardRoa').textContent = `${roa.toFixed(1)}%`;
+            // Executa Auditoria Contábil Automática no Frontend / Backend
+            executarAuditoriaContabilLocal(ativoTotal, somaPassivoPl, recLiq, c.receita_bruta, lBruto, lLiq, c.contas_a_receber, c.disponibilidades, c.patrimonio_liquido);
         }
 
-        // Adiciona listener em todos os inputs das contas contábeis para recalcular na hora
+        // Auditoria Contábil Instantânea
+        function executarAuditoriaContabilLocal(ativoTotal, somaPassivoPl, recLiq, recBruta, lBruto, lLiq, clientes, caixa, pl) {
+            const erros = [];
+            const alertas = [];
+
+            // Se ainda não foram preenchidos valores significativos
+            if (ativoTotal === 0 && recLiq === 0) {
+                atualizarPainelAuditoria({
+                    aprovado: false,
+                    status_auditoria: 'NEUTRO',
+                    diagnostico_ia: 'Aguardando upload dos arquivos contábeis ou preenchimento das contas para executar a auditoria cruzada.',
+                    erros_criticos: [],
+                    alertas: []
+                });
+                return;
+            }
+
+            // 1. Equação Fundamental do Balanço
+            const difBalanco = Math.abs(ativoTotal - somaPassivoPl);
+            if (ativoTotal > 0 && somaPassivoPl > 0) {
+                const percDif = (difBalanco / ativoTotal) * 100;
+                if (percDif > 3.0 && difBalanco > 10000) {
+                    erros.push(`Desequilíbrio Patrimonial Severo: Ativo Total (${formatMoney(ativoTotal)}) difere de Passivo + PL (${formatMoney(somaPassivoPl)}) em ${formatMoney(difBalanco)} (${percDif.toFixed(1)}% de diferença). A equação contábil não fecha.`);
+                }
+            } else if (ativoTotal > 0 && somaPassivoPl === 0) {
+                erros.push(`O Ativo Total está informado (${formatMoney(ativoTotal)}), mas Passivo e Patrimônio Líquido estão zerados.`);
+            }
+
+            // 2. Integridade dos Sinais
+            if (caixa < 0) erros.push('Disponibilidades / Caixa não pode apresentar saldo negativo no Balanço.');
+            if (ativoTotal < 0) erros.push('Ativo Total com valor negativo inválido.');
+
+            // 3. Coerência da DRE
+            if (recBruta > 0 && recLiq > (recBruta * 1.01)) {
+                erros.push(`Inconsistência na DRE: A Receita Líquida (${formatMoney(recLiq)}) é maior do que a Receita Bruta (${formatMoney(recBruta)}).`);
+            }
+            if (recLiq > 0 && lBruto > (recLiq * 1.02)) {
+                erros.push(`Inconsistência na DRE: O Lucro Bruto (${formatMoney(lBruto)}) é maior do que a Receita Líquida (${formatMoney(recLiq)}).`);
+            }
+            if (recLiq > 0 && lLiq > (recLiq * 1.05)) {
+                erros.push(`Inconsistência Crítica: O Lucro Líquido (${formatMoney(lLiq)}) é superior à própria Receita Operacional Líquida (${formatMoney(recLiq)}).`);
+            }
+
+            // 4. Cruzamento DRE vs Balanço
+            if (recLiq > 0 && clientes > (recLiq * 2.0) && clientes > 100000) {
+                alertas.push(`Divergência entre DRE e Balanço: O saldo de Contas a Receber (${formatMoney(clientes)}) ultrapassa 200% do Faturamento Anual (${formatMoney(recLiq)}).`);
+            }
+
+            const aprovado = erros.length === 0 && ativoTotal > 0 && recLiq > 0;
+            const status = !aprovado ? (erros.length > 0 ? 'REJEITADO_INCONSISTENTE' : 'NEUTRO') : (alertas.length > 0 ? 'APROVADO_COM_RESSALVAS' : 'APROVADO');
+            
+            let diagnostico = '';
+            if (status === 'REJEITADO_INCONSISTENTE') {
+                diagnostico = 'Os demonstrativos contábeis foram REJEITADOS pela Auditoria Inteligente. Foram detectadas divergências matemáticas severas que violam os princípios contábeis:';
+            } else if (status === 'APROVADO_COM_RESSALVAS') {
+                diagnostico = 'Auditoria Contábil APROVADA com ressalvas. O Balanço fecha com o PL, mas existem alertas de atenção entre as contas.';
+            } else if (status === 'APROVADO') {
+                diagnostico = 'Auditoria Contábil por IA APROVADA: Balanço Patrimonial e DRE em plena conformidade contábil e perfeitamente conciliados.';
+            } else {
+                diagnostico = 'Aguardando preenchimento das contas principais de Balanço e DRE.';
+            }
+
+            atualizarPainelAuditoria({
+                aprovado: aprovado,
+                status_auditoria: status,
+                diagnostico_ia: diagnostico,
+                erros_criticos: erros,
+                alertas: alertas
+            });
+        }
+
+        function atualizarPainelAuditoria(auditoria) {
+            if (!auditoria) return;
+            statusAuditoriaAtual = auditoria;
+
+            const painel = byId('painelAuditoriaIA');
+            const icone = byId('iconeAuditoria');
+            const badge = byId('badgeAuditoriaStatus');
+            const textoDiag = byId('textoAuditoriaDiagnostico');
+            const ulErros = byId('listaErrosAuditoria');
+            const ulAlertas = byId('listaAlertasAuditoria');
+            const btnAvancar = byId('btnAvancarIndices');
+            const avisoBloqueio = byId('avisoBloqueioAuditoria');
+
+            textoDiag.textContent = auditoria.diagnostico_ia || '';
+
+            if (auditoria.status_auditoria === 'REJEITADO_INCONSISTENTE') {
+                painel.className = 'auditoria-panel rejeitado';
+                icone.textContent = '❌';
+                badge.className = 'auditoria-badge rejeitado';
+                badge.textContent = 'REJEITADO POR INCONSISTÊNCIA';
+                btnAvancar.disabled = true;
+                avisoBloqueio.style.display = 'inline';
+
+                ulErros.style.display = 'flex';
+                ulErros.innerHTML = (auditoria.erros_criticos || []).map(e => `<li><span>⛔</span> ${e}</li>`).join('');
+
+            } else if (auditoria.status_auditoria === 'APROVADO' || auditoria.status_auditoria === 'APROVADO_COM_RESSALVAS') {
+                painel.className = 'auditoria-panel aprovado';
+                icone.textContent = '✓';
+                badge.className = 'auditoria-badge aprovado';
+                badge.textContent = 'AUDITORIA IA APROVADA';
+                btnAvancar.disabled = false;
+                avisoBloqueio.style.display = 'none';
+
+                ulErros.style.display = 'none';
+                ulErros.innerHTML = '';
+
+            } else {
+                painel.className = 'auditoria-panel neutro';
+                icone.textContent = '🤖';
+                badge.className = 'auditoria-badge neutro';
+                badge.textContent = 'Aguardando Dados';
+                btnAvancar.disabled = true;
+                avisoBloqueio.style.display = 'none';
+
+                ulErros.style.display = 'none';
+            }
+
+            if (auditoria.alertas && auditoria.alertas.length > 0) {
+                ulAlertas.style.display = 'flex';
+                ulAlertas.innerHTML = auditoria.alertas.map(a => `<li><span>⚠️</span> ${a}</li>`).join('');
+            } else {
+                ulAlertas.style.display = 'none';
+                ulAlertas.innerHTML = '';
+            }
+        }
+
+        // Listener de recálculo em tempo real para todos os inputs
         document.querySelectorAll('.conta-input').forEach(input => {
             input.addEventListener('input', recalcularIndicesEmTempoReal);
         });
 
-        // Inicializa cálculo na carga da página
+        // Inicializa cálculos
         recalcularIndicesEmTempoReal();
 
         // Advance to Step 3
         byId('btnAvancarIndices').addEventListener('click', () => {
+            if (!statusAuditoriaAtual.aprovado) {
+                showToast('A auditoria contábil rejeitou os demonstrativos por inconsistência. Corrija os erros para avançar.', 'error');
+                return;
+            }
             byId('stepSectionFinancials').classList.add('visible');
             byId('stepCard2').classList.add('completed');
             byId('stepCard3').classList.add('active');
@@ -2426,28 +2871,22 @@
             btn.innerHTML = '<span>Processando Decisão com IA...</span>';
 
             const c = obterValoresContas();
-            const ativoCirculante = c.disponibilidades + c.contas_a_receber + c.estoques;
-            const ativoNaoCirculante = c.realizavel_lp + c.imobilizado;
-            const ativoTotal = ativoCirculante + ativoNaoCirculante;
-            const passivoCirculante = c.fornecedores + c.emprestimos_cp;
-            const passivoNaoCirculante = c.financiamentos_lp;
-
             const payload = {
                 cnpj: empresaAtual ? empresaAtual.cnpj : cnpjInput.value.replace(/\D/g, '') || null,
                 razao_social: empresaAtual ? (empresaAtual.razao_social || empresaAtual.nome_fantasia) : 'Empresa em Análise',
                 balanco: {
-                    ativo_total: ativoTotal,
-                    ativo_circulante: ativoCirculante,
+                    ativo_total: c.ativo_total,
+                    ativo_circulante: c.ativo_circulante,
                     disponibilidades: c.disponibilidades,
                     contas_a_receber: c.contas_a_receber,
                     estoques: c.estoques,
-                    ativo_nao_circulante: ativoNaoCirculante,
+                    ativo_nao_circulante: c.ativo_nao_circulante,
                     realizavel_longo_prazo: c.realizavel_lp,
                     imobilizado: c.imobilizado,
-                    passivo_circulante: passivoCirculante,
+                    passivo_circulante: c.passivo_circulante,
                     fornecedores: c.fornecedores,
                     emprestimos_curto_prazo: c.emprestimos_cp,
-                    passivo_nao_circulante: passivoNaoCirculante,
+                    passivo_nao_circulante: c.passivo_nao_circulante,
                     financiamentos_longo_prazo: c.financiamentos_lp,
                     patrimonio_liquido: c.patrimonio_liquido,
                     capital_social: c.capital_social
@@ -2482,7 +2921,12 @@
                 const data = await res.json();
                 renderResult(data, payload);
                 byId('stepCard3').classList.add('completed');
-                showToast('Parecer de crédito concluído e registrado!', 'success');
+                
+                if (data.status_decisao === 'REPROVADO' && data.auditoria && !data.auditoria.aprovado) {
+                    showToast('Crédito Reprovado: Arquivos rejeitados por inconsistência contábil.', 'error');
+                } else {
+                    showToast('Parecer de crédito emitido e registrado no Supabase!', 'success');
+                }
 
             } catch (err) {
                 showToast(`Falha ao calcular análise: ${err.message}`, 'error');
@@ -2497,20 +2941,16 @@
             const resultPanel = byId('resultPanel');
             resultPanel.classList.add('visible');
 
-            // Subtitle
             const empresaNome = payload.razao_social || 'Empresa Analisada';
             byId('resultSubtitle').textContent = `Parecer conclusivo emitido para ${empresaNome} em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
 
-            // Score Counter
             byId('resScore').textContent = data.score;
 
-            // Animated Gauge
             const circle = byId('gaugeValCircle');
             const circumference = 2 * Math.PI * 60; // 376.99
             const offset = circumference - (data.score / 1000) * circumference;
             circle.style.strokeDashoffset = offset;
 
-            // Decision Badge & Rating
             const badge = byId('resBadge');
             const resRating = byId('resRating');
             resRating.textContent = `Rating: ${data.rating || 'N/A'}`;
@@ -2529,12 +2969,10 @@
                 badge.textContent = '✕ CRÉDITO REPROVADO';
             }
 
-            // Highlights
             byId('resLimite').textContent = formatMoney(data.limite_sugerido);
             byId('resCapacidade').textContent = `${formatMoney(data.capacidade_pagamento_mensal)}/mês`;
             byId('resReceitaDRE').textContent = formatMoney(payload.receita_liquida_anual || (payload.dre ? payload.dre.receita_liquida : 0));
 
-            // Diagnóstico de Pontos Fortes e Riscos
             const ulFortes = byId('listaPontosFortes');
             const ulAtencao = byId('listaPontosAtencao');
 
@@ -2547,7 +2985,7 @@
 
             const atencao = data.pontos_atencao || [];
             if (atencao.length === 0) {
-                ulAtencao.innerHTML = `<li><span>•</span> Nenhum sinal de estresse financeiro ou risco severo apontado.</li>`;
+                ulAtencao.innerHTML = `<li><span>•</span> Nenhum sinal de risco severo identificado.</li>`;
             } else {
                 ulAtencao.innerHTML = atencao.map(a => `<li><span style="color:var(--amber);">⚠️</span> ${a}</li>`).join('');
             }
@@ -2570,6 +3008,8 @@
             byId('stepCard1').className = 'step-card active';
             byId('stepCard2').className = 'step-card';
             byId('stepCard3').className = 'step-card';
+            document.querySelectorAll('.conta-input').forEach(i => i.value = 0);
+            recalcularIndicesEmTempoReal();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
