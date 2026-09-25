@@ -100,6 +100,7 @@ class AuditoriaInput(BaseModel):
 class AnaliseCreditoInput(BaseModel):
     cnpj: Optional[str] = None
     razao_social: Optional[str] = None
+    capital_social_cadastral: Optional[float] = None
     
     # Contas Contábeis
     balanco: Optional[ContasBalanco] = None
@@ -117,6 +118,7 @@ class AnaliseCreditoInput(BaseModel):
 
 class ExtracaoTextoInput(BaseModel):
     texto: str
+    capital_social_cadastral: Optional[float] = 0.0
 
 
 # ==========================================================
@@ -124,7 +126,7 @@ class ExtracaoTextoInput(BaseModel):
 # ==========================================================
 
 def extrair_texto_de_arquivo(nome_arquivo: str, conteudo_bytes: bytes) -> str:
-    """Extrai texto legível de arquivos PDF, planilhas Excel (.xlsx/.xls) ou arquivos de texto/CSV."""
+    """Extrai texto legível e estruturado de arquivos PDF, planilhas Excel (.xlsx/.xls) ou arquivos de texto/CSV."""
     nome_lower = (nome_arquivo or "").lower()
 
     # 1. Arquivo PDF real (usando pypdf)
@@ -142,7 +144,7 @@ def extrair_texto_de_arquivo(nome_arquivo: str, conteudo_bytes: bytes) -> str:
         except Exception as e:
             print(f"Aviso ao ler PDF '{nome_arquivo}' com pypdf: {e}")
 
-    # 2. Planilha Excel real (usando openpyxl)
+    # 2. Planilha Excel real moderna (usando openpyxl com leitura de todas as abas e colunas)
     elif nome_lower.endswith((".xlsx", ".xlsm", ".xltx")):
         try:
             import openpyxl
@@ -150,8 +152,19 @@ def extrair_texto_de_arquivo(nome_arquivo: str, conteudo_bytes: bytes) -> str:
             linhas_planilha = []
             for sheetname in wb.sheetnames:
                 ws = wb[sheetname]
+                linhas_planilha.append(f"\n--- PLANILHA: {sheetname} ---")
                 for row in ws.iter_rows(values_only=True):
-                    celulas = [str(c).strip() for c in row if c is not None and str(c).strip() != ""]
+                    celulas = []
+                    for c in row:
+                        if c is None:
+                            continue
+                        # Formata tipos do Excel (datetime, float, int, str)
+                        if hasattr(c, "strftime"):
+                            celulas.append(c.strftime("%d/%m/%Y"))
+                        else:
+                            s = str(c).strip()
+                            if s:
+                                celulas.append(s)
                     if celulas:
                         linhas_planilha.append(" | ".join(celulas))
             if linhas_planilha:
@@ -159,8 +172,30 @@ def extrair_texto_de_arquivo(nome_arquivo: str, conteudo_bytes: bytes) -> str:
         except Exception as e:
             print(f"Aviso ao ler Excel '{nome_arquivo}' com openpyxl: {e}")
 
-    # 3. Arquivo de Texto, CSV ou fallback com detecção de encoding
-    for enc in ["utf-8", "latin-1", "cp1252", "iso-8859-1"]:
+    # 3. Tratamento para arquivos legados .xls (Excel 97-2003)
+    elif nome_lower.endswith(".xls"):
+        try:
+            import xlrd
+            book = xlrd.open_workbook(file_contents=conteudo_bytes)
+            linhas_xls = []
+            for s_idx in range(book.nsheets):
+                sh = book.sheet_by_index(s_idx)
+                linhas_xls.append(f"\n--- PLANILHA: {sh.name} ---")
+                for rx in range(sh.nrows):
+                    row_vals = [str(sh.cell_value(rx, cx)).strip() for cx in range(sh.ncols) if str(sh.cell_value(rx, cx)).strip()]
+                    if row_vals:
+                        linhas_xls.append(" | ".join(row_vals))
+            if linhas_xls:
+                return "\n".join(linhas_xls)
+        except Exception:
+            # Se xlrd não estiver disponível, avisa para salvar como .xlsx
+            return (
+                "Aviso: O arquivo enviado está no formato legado .xls (Excel 97-2003). "
+                "Para leitura contábil automática com máxima precisão, converta e salve o arquivo como .xlsx ou .csv."
+            )
+
+    # 4. Arquivo de Texto, CSV ou fallback com detecção de encoding (com suporte a utf-8-sig com BOM)
+    for enc in ["utf-8-sig", "utf-8", "latin-1", "cp1252", "iso-8859-1"]:
         try:
             return conteudo_bytes.decode(enc)
         except UnicodeDecodeError:
@@ -169,73 +204,215 @@ def extrair_texto_de_arquivo(nome_arquivo: str, conteudo_bytes: bytes) -> str:
     return conteudo_bytes.decode("utf-8", errors="ignore")
 
 
+def detectar_escala(conteudo_texto: str):
+    """
+    Identifica se as demonstrações contábeis estão expressas em Milhares (R$ Mil), Milhões ou Unidades simples.
+    Padrão amplamente utilizado por companhias de capital aberto (CVM, B3 e IFRS).
+    """
+    t = (conteudo_texto or "").lower()
+    
+    # 1. Padrões de Milhões
+    padroes_milhoes = [
+        r"r\$\s*mi\b",
+        r"r\$\s*milh[oõ]es\b",
+        r"valores\s+em\s+milh[oõ]es",
+        r"valores\s+expressos\s+em\s+milh[oõ]es",
+        r"expressos\s+em\s+milh[oõ]es",
+        r"em\s+milh[oõ]es(?:\s+de\s+reais|\s+de\s+r\$|\s+reais)?",
+        r"cifras\s+em\s+milh[oõ]es",
+        r"milh[oõ]es\s+de\s+reais",
+        r"r\$\s*em\s+milh[oõ]es",
+        r"\(?\s*r\$\s*[\'\"]?000\.000\s*\)?",
+        r"\(?\s*em\s+milh[oõ]es\s*\)?",
+        r"escala:\s*milh[oõ]es",
+        r"unidade:\s*milh[oõ]es"
+    ]
+    for p in padroes_milhoes:
+        if re.search(p, t):
+            return "milhoes", 1000000.0, "Em milhões de Reais (x1.000.000)"
+
+    # 2. Padrões de Milhares (Padrão CVM / B3 / IFRS Brasil: 'R$ Mil', 'Valores em milhares', etc.)
+    padroes_milhares = [
+        r"r\$\s*mil\b",
+        r"\(?\s*em\s+r\$\s*mil\s*\)?",
+        r"valores\s+em\s+milhares",
+        r"valores\s+expressos\s+em\s+milhares",
+        r"expressos\s+em\s+milhares",
+        r"em\s+milhares(?:\s+de\s+reais|\s+de\s+r\$|\s+reais)?",
+        r"cifras\s+em\s+milhares",
+        r"milhares\s+de\s+reais",
+        r"r\$\s*em\s+milhares",
+        r"\(?\s*r\$\s*[\'\"]?000\s*\)?",
+        r"\(?\s*em\s+milhares\s*\)?",
+        r"escala:\s*milhares",
+        r"unidade:\s*milhares",
+        r"r\$\s*1\.000\b",
+        r"\(?\s*em\s+r\$\s*1\.000\s*\)?"
+    ]
+    for p in padroes_milhares:
+        if re.search(p, t):
+            return "milhares", 1000.0, "Em milhares de Reais (x1.000)"
+
+    return "unidades", 1.0, "Em Reais (x1)"
+
+
 def limpar_numero(val_str: str) -> float:
-    """Converte strings numéricas em float tratando padrões brasileiros (1.000,00) e internacionais."""
+    """
+    Converte strings numéricas em float tratando padrões brasileiros (1.000,00 e 35.240.112)
+    e internacionais sem truncamento de dígitos.
+    """
     if not val_str:
         return 0.0
-    v = val_str.strip().replace("R$", "").replace(" ", "")
-    # Se contém parênteses de valor negativo contábil ex: (50.000,00)
+    v = str(val_str).strip().replace("R$", "").replace(" ", "")
     negativo = False
-    if v.startswith("(") and v.endswith(")"):
+    if (v.startswith("(") and v.endswith(")")) or v.startswith("-"):
         negativo = True
-        v = v[1:-1]
-    elif "-" in v:
-        negativo = True
-
+        v = v.strip("()-")
+    
+    # Caso 1: tem ponto e vírgula -> Ex: 35.240.112,50 ou 35,240,112.50
     if "." in v and "," in v:
-        v = v.replace(".", "").replace(",", ".")
+        # Se a vírgula vem depois do ponto: padrão brasileiro 1.000,50
+        if v.rfind(",") > v.rfind("."):
+            v = v.replace(".", "").replace(",", ".")
+        else:
+            v = v.replace(",", "")
     elif "," in v:
-        v = v.replace(",", ".")
-
+        # Apenas vírgula: se tem mais de uma vírgula (ex: 35,240,112)
+        if v.count(",") > 1:
+            v = v.replace(",", "")
+        else:
+            # Uma vírgula: se tiver exatamente 2 dígitos no fim, é decimal (1250,50)
+            partes = v.split(",")
+            if len(partes[1]) == 2:
+                v = v.replace(",", ".")
+            else:
+                v = v.replace(",", "")
+    elif "." in v:
+        # Apenas ponto: se tem mais de um ponto (ex: 35.240.112)
+        if v.count(".") > 1:
+            v = v.replace(".", "")
+        else:
+            # Um ponto: se tiver 3 dígitos após o ponto (ex: 1.250 ou 500.000), é milhar!
+            partes = v.split(".")
+            if len(partes[1]) == 3:
+                v = v.replace(".", "")
+            else:
+                pass # decimal como 1250.50
+    
     try:
-        num = float(re.findall(r"\d+\.?\d*", v)[0])
+        num = float(v)
         return -num if negativo else num
-    except (IndexError, ValueError):
+    except ValueError:
+        nums = re.findall(r"\d+(?:\.\d+)?", v)
+        if nums:
+            num = float(nums[0])
+            return -num if negativo else num
         return 0.0
 
 
-def extrair_contas_contabeis(conteudo_texto: str) -> Dict[str, Any]:
+def extrair_valor_de_linha_contabil(linha: str) -> float:
+    """
+    Extrai com precisão contábil o valor financeiro do período recente (exercício corrente)
+    em planilhas com múltiplas colunas (Código | Descrição | Nota | Período Atual | Período Anterior)
+    e relatórios de texto / PDF, descartando colunas de notas explicativas e anos.
+    """
+    # 1. Quebra de colunas estruturadas ou delimitadas por múltiplos espaços
+    if "|" in linha or ";" in linha or "\t" in linha:
+        delim = "|" if "|" in linha else (";" if ";" in linha else "\t")
+        colunas = [c.strip() for c in linha.split(delim) if c.strip()]
+    else:
+        colunas = [c.strip() for c in re.split(r"\s{2,}", linha.strip()) if c.strip()]
+
+    if len(colunas) <= 1:
+        padrao = r"[-+]?\s*\(?\s*R?\$?\s*(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{2})?\s*\)?"
+        numeros = re.findall(padrao, linha)
+        if numeros:
+            for n in reversed(numeros):
+                v = limpar_numero(n)
+                if abs(v) > 0:
+                    return v
+        return 0.0
+
+    valores_candidatos = []
+    for i, col in enumerate(colunas):
+        # Despreza datas completas (ex: 31/12/2023 ou 2023-12-31)
+        if re.search(r"^\d{2}/\d{2}/\d{4}$", col) or re.search(r"^\d{4}-\d{2}-\d{2}", col):
+            continue
+        # Despreza colunas que são puramente texto sem dígito
+        if not re.search(r"\d", col):
+            continue
+        # Despreza notas explicativas textuais explícitas (ex: 'Nota 4', 'NE 12', 'N.E. 3')
+        if re.search(r"^(?:nota|ne|n\.e\.)\s*\d+$", col, re.I):
+            continue
+        # Despreza código da conta contábil na primeira coluna (ex: 1, 1.01, 1.01.01, 2.01, 3.01)
+        if i == 0 and re.match(r"^[1-9](?:\.\d{2})*(?:\.\d{2})*$", col):
+            continue
+
+        val = limpar_numero(col)
+        # Despreza ano isolado no cabeçalho ou linha (ex: 1990..2099) quando houver valores financeiros
+        if 1990 <= val <= 2099 and ("." not in col and "," not in col) and len(col) == 4:
+            if any(limpar_numero(c) > 2100 for c in colunas[i+1:]):
+                continue
+
+        # Despreza coluna de nota explicativa numérica isolada (ex: 4, 12, 58) quando a próxima coluna for valor financeiro maior
+        if 0 < val < 100 and ("." not in col and "," not in col):
+            if any(abs(limpar_numero(c)) >= 100 for c in colunas[i+1:]):
+                continue
+
+        if abs(val) > 0:
+            valores_candidatos.append(val)
+
+    if valores_candidatos:
+        # Retorna o valor do período mais recente (primeira coluna financeira contábil da linha)
+        return valores_candidatos[0]
+
+    return 0.0
+
+
+def extrair_contas_contabeis(conteudo_texto: str, capital_social_cadastral: float = 0.0) -> Dict[str, Any]:
     """
     Analisa o texto do Balanço Patrimonial e DRE para identificar as contas
-    mais comuns conforme o padrão contábil brasileiro (CPC / IFRS).
+    mais comuns conforme o padrão contábil brasileiro (CPC / IFRS / CVM)
+    e aplica a escala de grandeza monetária detectada (Milhares / Milhões / Unidades).
     """
+    tipo_escala, fator_escala, desc_escala = detectar_escala(conteudo_texto)
     linhas = conteudo_texto.splitlines()
     balanco = ContasBalanco().model_dump()
     dre = ContasDre().model_dump()
     contas_encontradas = []
 
-    # Padrões regex para contas do Balanço Patrimonial
+    # Padrões regex para contas do Balanço Patrimonial (Textuais e Códigos CVM)
     padroes_balanco = {
-        "disponibilidades": r"(?:disponibilidades|caixa\s+e\s+equivalentes|caixa\s+e\s+bancos|bancos\s+conta\s+movimento|dispon[ií]vel)",
-        "contas_a_receber": r"(?:contas\s+a\s+receber|duplicatas\s+a\s+receber|clientes\s+a\s+receber|cr[eé]ditos\s+operacionais)",
-        "estoques": r"(?:estoques?|mercadorias\s+para\s+revenda|produtos\s+acabados|mat[eé]rias\s+primas)",
-        "ativo_circulante": r"(?:ativo\s+circulante|total\s+do\s+ativo\s+circulante|circulante\s+ativo)",
-        "realizavel_longo_prazo": r"(?:realiz[aá]vel\s+a\s+longo\s+prazo|ativo\s+rlp|cr[eé]ditos\s+de\s+longo\s+prazo)",
-        "imobilizado": r"(?:imobilizado|ativo\s+imobilizado|intang[ií]vel|investimentos\s+e\s+imobilizado|bens\s+e\s+direitos)",
-        "ativo_nao_circulante": r"(?:ativo\s+n[aã]o\s+circulante|total\s+do\s+ativo\s+n[aã]o\s+circulante|permanente)",
-        "ativo_total": r"(?:ativo\s+total|total\s+do\s+ativo|total\s+geral\s+do\s+ativo)",
-        "fornecedores": r"(?:fornecedores|contas\s+a\s+pagar\s+fornecedores|fornecedores\s+nacionais)",
-        "emprestimos_curto_prazo": r"(?:empr[eé]stimos\s+e\s+financiamentos\s+cp|empr[eé]stimos\s+(?:cp|curto\s+prazo)|financiamentos\s+cp|d[ií]vidas\s+cp)",
-        "passivo_circulante": r"(?:passivo\s+circulante|total\s+do\s+passivo\s+circulante|circulante\s+passivo)",
-        "financiamentos_longo_prazo": r"(?:empr[eé]stimos\s+lp|financiamentos\s+lp|d[ií]vidas\s+lp|financiamentos\s+a\s+longo\s+prazo)",
-        "passivo_nao_circulante": r"(?:passivo\s+n[aã]o\s+circulante|total\s+do\s+passivo\s+n[aã]o\s+circulante|exig[ií]vel\s+a\s+longo\s+prazo)",
-        "capital_social": r"(?:capital\s+social|capital\s+subscrito|capital\s+integralizado)",
-        "patrimonio_liquido": r"(?:patrim[oô]nio\s+l[ií]quido|total\s+do\s+patrim[oô]nio\s+l[ií]quido|pl\s+total)"
+        "ativo_total": r"(?:^\s*1(?:\.00)?\s*\||ativo\s+total|total\s+do\s+ativo|total\s+geral\s+do\s+ativo)",
+        "ativo_circulante": r"(?:^\s*1\.01\s*\||ativo\s+circulante|total\s+do\s+ativo\s+circulante|circulante\s+ativo)",
+        "disponibilidades": r"(?:^\s*1\.01\.01\s*\||caixa\s+e\s+equivalentes|caixa\s+e\s+bancos|disponibilidades|bancos\s+conta\s+movimento|dispon[ií]vel)",
+        "contas_a_receber": r"(?:^\s*1\.01\.02\s*\||^\s*1\.01\.03\s*\||contas\s+a\s+receber|duplicatas\s+a\s+receber|clientes\s+a\s+receber|clientes\b|cr[eé]ditos\s+operacionais)",
+        "estoques": r"(?:^\s*1\.01\.04\s*\||estoques?|mercadorias\s+para\s+revenda|produtos\s+acabados|mat[eé]rias\s+primas)",
+        "realizavel_longo_prazo": r"(?:^\s*1\.02\.01\s*\||realiz[aá]vel\s+a\s+longo\s+prazo|ativo\s+rlp|cr[eé]ditos\s+de\s+longo\s+prazo)",
+        "imobilizado": r"(?:^\s*1\.02\.03\s*\||^\s*1\.02\.02\s*\||imobilizado|ativo\s+imobilizado|intang[ií]vel|investimentos\s+e\s+imobilizado|bens\s+e\s+direitos)",
+        "ativo_nao_circulante": r"(?:^\s*1\.02\s*\||ativo\s+n[aã]o\s+circulante|total\s+do\s+ativo\s+n[aã]o\s+circulante|permanente)",
+        "passivo_circulante": r"(?:^\s*2\.01\s*\||passivo\s+circulante|total\s+do\s+passivo\s+circulante|circulante\s+passivo)",
+        "fornecedores": r"(?:^\s*2\.01\.01\s*\||^\s*2\.01\.02\s*\||fornecedores|contas\s+a\s+pagar\s+fornecedores|fornecedores\s+nacionais)",
+        "emprestimos_curto_prazo": r"(?:^\s*2\.01\.04\s*\||^\s*2\.01\.03\s*\||empr[eé]stimos\s+e\s+financiamentos\s+cp|empr[eé]stimos\s+(?:cp|curto\s+prazo)|financiamentos\s+cp|d[ií]vidas\s+cp)",
+        "passivo_nao_circulante": r"(?:^\s*2\.02\s*\||passivo\s+n[aã]o\s+circulante|total\s+do\s+passivo\s+n[aã]o\s+circulante|exig[ií]vel\s+a\s+longo\s+prazo)",
+        "financiamentos_longo_prazo": r"(?:^\s*2\.02\.01\s*\||empr[eé]stimos\s+lp|financiamentos\s+lp|d[ií]vidas\s+lp|financiamentos\s+a\s+longo\s+prazo)",
+        "capital_social": r"(?:^\s*2\.03\.01\s*\||capital\s+social|capital\s+subscrito|capital\s+integralizado|capital\s+realizado)",
+        "patrimonio_liquido": r"(?:^\s*2\.03\s*\||patrim[oô]nio\s+l[ií]quido|total\s+do\s+patrim[oô]nio\s+l[ií]quido|pl\s+total)"
     }
 
-    # Padrões regex para contas da DRE
+    # Padrões regex para contas da DRE (Textuais e Códigos CVM)
     padroes_dre = {
-        "receita_bruta": r"(?:receita\s+operacional\s+bruta|receita\s+bruta\s+de\s+vendas|vendas\s+brutas|faturamento\s+bruto)",
-        "deducoes": r"(?:dedu[cç][oõ]es\s+da\s+receita|impostos\s+incidentes\s+sobre\s+vendas|devolu[cç][oõ]es\s+e\s+abatimentos)",
-        "receita_liquida": r"(?:receita\s+operacional\s+l[ií]quida|receita\s+l[ií]quida|vendas\s+l[ií]quidas|total\s+da\s+receita\s+l[ií]quida)",
-        "custos_vendas": r"(?:custo\s+(?:das\s+vendas|dos\s+produtos|dos\s+servi[cç]os)|custo\s+das\s+mercadorias|cmv|cpv|csp)",
-        "lucro_bruto": r"(?:lucro\s+bruto|resultado\s+bruto|resultado\s+operacional\s+bruto)",
-        "despesas_operacionais": r"(?:despesas\s+operacionais|despesas\s+com\s+vendas|despesas\s+administrativas|despesas\s+gerais)",
+        "receita_bruta": r"(?:^\s*3\.01\s*\||receita\s+de\s+venda|receita\s+operacional\s+bruta|receita\s+bruta\s+de\s+vendas|vendas\s+brutas|faturamento\s+bruto)",
+        "deducoes": r"(?:^\s*3\.02\s*\||dedu[cç][oõ]es\s+da\s+receita|impostos\s+incidentes\s+sobre\s+vendas|devolu[cç][oõ]es\s+e\s+abatimentos)",
+        "receita_liquida": r"(?:^\s*3\.03\s*\||receita\s+operacional\s+l[ií]quida|receita\s+l[ií]quida|vendas\s+l[ií]quidas|total\s+da\s+receita\s+l[ií]quida)",
+        "custos_vendas": r"(?:^\s*3\.04\s*\||custo\s+(?:das\s+vendas|dos\s+produtos|dos\s+servi[cç]os|dos\s+bens)|custo\s+das\s+mercadorias|cmv|cpv|csp)",
+        "lucro_bruto": r"(?:^\s*3\.05\s*\||lucro\s+bruto|resultado\s+bruto|resultado\s+operacional\s+bruto)",
+        "despesas_operacionais": r"(?:^\s*3\.06\s*\||despesas\s+operacionais|despesas\s+com\s+vendas|despesas\s+administrativas|despesas\s+gerais)",
         "ebitda": r"(?:ebitda|lajida|resultado\s+operacional\s+antes\s+dos\s+efeitos|lucro\s+operacional)",
         "depreciacao_amortizacao": r"(?:deprecia[cç][aã]o|amortiza[cç][aã]o|deprecia[cç][aã]o\s+e\s+amortiza[cç][aã]o)",
-        "resultado_financeiro": r"(?:resultado\s+financeiro\s+l[ií]quido|despesas\s+financeiras\s+l[ií]quidas|receitas\s+e\s+despesas\s+financeiras)",
+        "resultado_financeiro": r"(?:^\s*3\.07\s*\||^\s*3\.08\s*\||resultado\s+financeiro\s+l[ií]quido|despesas\s+financeiras\s+l[ií]quidas|receitas\s+e\s+despesas\s+financeiras)",
         "impostos": r"(?:irpj\s+e\s+csll|imposto\s+de\s+renda\s+e\s+contribui[cç][aã]o|provis[aã]o\s+para\s+irpj)",
-        "lucro_liquido": r"(?:lucro\s+l[ií]quido\s+do\s+exerc[ií]cio|lucro\s+l[ií]quido|resultado\s+l[ií]quido\s+do\s+exerc[ií]cio|lucro\/preju[ií]zo\s+l[ií]quido)"
+        "lucro_liquido": r"(?:^\s*3\.11\s*\||lucro\s+l[ií]quido\s+do\s+exerc[ií]cio|lucro\s+l[ií]quido|resultado\s+l[ií]quido\s+do\s+exerc[ií]cio|lucro\/preju[ií]zo\s+l[ií]quido|resultado\s+do\s+per[ií]odo)"
     }
 
     for linha in linhas:
@@ -243,32 +420,46 @@ def extrair_contas_contabeis(conteudo_texto: str) -> Dict[str, Any]:
         if not linha_limpa or len(linha_limpa) < 3:
             continue
 
-        # Procura padrões de números monetários na linha
-        numeros = re.findall(r"[-+]?\s*\(?\s*R?\$?\s*(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{2})?\s*\)?", linha_limpa)
-        if not numeros:
+        valor_bruto = extrair_valor_de_linha_contabil(linha_limpa)
+        if valor_bruto == 0:
             continue
-        ultimo_valor = limpar_numero(numeros[-1])
-        if ultimo_valor == 0:
-            continue
+
+        valor_escalado = valor_bruto * fator_escala
 
         # Testa com padrões de Balanço
         for chave, padrao in padroes_balanco.items():
             if re.search(padrao, linha_limpa, re.IGNORECASE) and balanco[chave] == 0:
-                balanco[chave] = abs(ultimo_valor)
-                contas_encontradas.append({"tipo": "balanco", "conta": chave, "valor": abs(ultimo_valor), "linha": linha_limpa})
+                balanco[chave] = abs(valor_escalado)
+                contas_encontradas.append({
+                    "tipo": "balanco",
+                    "conta": chave,
+                    "valor_bruto": abs(valor_bruto),
+                    "valor": abs(valor_escalado),
+                    "fator_escala": fator_escala,
+                    "linha": linha_limpa
+                })
                 break
 
         # Testa com padrões de DRE
         for chave, padrao in padroes_dre.items():
             if re.search(padrao, linha_limpa, re.IGNORECASE) and dre[chave] == 0:
-                # Lucro Líquido e Resultado Financeiro podem ser negativos
-                valor_final = ultimo_valor if "-" not in numeros[-1] and not numeros[-1].startswith("(") else -abs(ultimo_valor)
+                valor_final = valor_escalado
                 dre[chave] = valor_final
-                contas_encontradas.append({"tipo": "dre", "conta": chave, "valor": valor_final, "linha": linha_limpa})
+                contas_encontradas.append({
+                    "tipo": "dre",
+                    "conta": chave,
+                    "valor_bruto": valor_bruto,
+                    "valor": valor_final,
+                    "fator_escala": fator_escala,
+                    "linha": linha_limpa
+                })
                 break
 
     return {
         "sucesso": True,
+        "escala_detectada": tipo_escala,
+        "fator_escala": fator_escala,
+        "descricao_escala": desc_escala,
         "balanco": balanco,
         "dre": dre,
         "total_contas_detectadas": len(contas_encontradas),
@@ -285,35 +476,53 @@ def formatar_moeda(val: float) -> str:
     return f"R$ {val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-def auditar_demonstrativos_contabeis(balanco: Dict[str, Any], dre: Dict[str, Any]) -> Dict[str, Any]:
+def auditar_demonstrativos_contabeis(balanco: Dict[str, Any], dre: Dict[str, Any], capital_social_cadastral: float = 0.0) -> Dict[str, Any]:
     """
     Executa a auditoria inteligente dos demonstrativos contábeis carregados.
     Verifica a Equação Patrimonial Fundamental, a coerência interna da DRE,
-    a compatibilidade entre o Balanço e a DRE e rejeita arquivos com divergências severas.
+    a compatibilidade entre o Balanço e a DRE e a consistência cruzada com o Capital Social Cadastral.
     """
     erros_criticos: List[str] = []
     alertas: List[str] = []
 
     # Extração das grandezas informadas
-    ativo_total = balanco.get("ativo_total", 0.0)
-    ativo_circulante = balanco.get("ativo_circulante", 0.0)
-    disponibilidades = balanco.get("disponibilidades", 0.0)
-    contas_a_receber = balanco.get("contas_a_receber", 0.0)
-    estoques = balanco.get("estoques", 0.0)
-    ativo_nao_circulante = balanco.get("ativo_nao_circulante", 0.0)
+    ativo_total = float(balanco.get("ativo_total") or 0.0)
+    ativo_circulante = float(balanco.get("ativo_circulante") or 0.0)
+    disponibilidades = float(balanco.get("disponibilidades") or 0.0)
+    contas_a_receber = float(balanco.get("contas_a_receber") or 0.0)
+    estoques = float(balanco.get("estoques") or 0.0)
+    ativo_nao_circulante = float(balanco.get("ativo_nao_circulante") or 0.0)
 
-    passivo_circulante = balanco.get("passivo_circulante", 0.0)
-    passivo_nao_circulante = balanco.get("passivo_nao_circulante", 0.0)
-    patrimonio_liquido = balanco.get("patrimonio_liquido", 0.0)
+    passivo_circulante = float(balanco.get("passivo_circulante") or 0.0)
+    passivo_nao_circulante = float(balanco.get("passivo_nao_circulante") or 0.0)
+    patrimonio_liquido = float(balanco.get("patrimonio_liquido") or 0.0)
 
-    receita_bruta = dre.get("receita_bruta", 0.0)
-    deducoes = dre.get("deducoes", 0.0)
-    receita_liquida = dre.get("receita_liquida", 0.0)
-    lucro_bruto = dre.get("lucro_bruto", 0.0)
-    ebitda = dre.get("ebitda", 0.0)
-    lucro_liquido = dre.get("lucro_liquido", 0.0)
+    receita_bruta = float(dre.get("receita_bruta") or 0.0)
+    deducoes = float(dre.get("deducoes") or 0.0)
+    receita_liquida = float(dre.get("receita_liquida") or 0.0)
+    lucro_bruto = float(dre.get("lucro_bruto") or 0.0)
+    ebitda = float(dre.get("ebitda") or 0.0)
+    lucro_liquido = float(dre.get("lucro_liquido") or 0.0)
 
-    # 1. TESTE DA EQUAÇÃO PATRIMONIAL FUNDAMENTAL (Ativo = Passivo + PL)
+    # 1. VALIDAÇÃO CRUZADA DE CONSISTÊNCIA: ATIVO TOTAL vs. CAPITAL SOCIAL CADASTRAL
+    # Regra de Negócio: Trava a aprovação se Ativo Total lido < Capital Social Cadastral
+    if capital_social_cadastral > 0 and ativo_total > 0:
+        if ativo_total < (capital_social_cadastral * 0.90):
+            erros_criticos.append(
+                f"Incompatibilidade de Escala / Arquivo Inválido: O Ativo Total lido ({formatar_moeda(ativo_total)}) "
+                f"é inferior ao Capital Social Cadastral na Receita Federal ({formatar_moeda(capital_social_cadastral)}). "
+                f"Demonstrativos contábeis de companhias de médio/grande porte são expressos em R$ Mil ou R$ Milhões. "
+                f"A aprovação automática foi travada para mitigar risco cadastral e distorção de escala."
+            )
+            # Dica orientativa de correção de escala
+            if (ativo_total * 1000.0) >= (capital_social_cadastral * 0.5):
+                alertas.append(
+                    f"Sugestão de Escala Contábil: Ao multiplicar os valores por 1.000 (R$ Mil), o Ativo Total passará para "
+                    f"{formatar_moeda(ativo_total * 1000.0)}, condizente com o porte cadastral da entidade. "
+                    f"Selecione o botão 'Em milhares (x1.000)' no topo das tabelas."
+                )
+
+    # 2. TESTE DA EQUAÇÃO PATRIMONIAL FUNDAMENTAL (Ativo = Passivo + PL)
     soma_passivo_pl = passivo_circulante + passivo_nao_circulante + patrimonio_liquido
     diferenca_balanco = abs(ativo_total - soma_passivo_pl)
 
@@ -333,7 +542,7 @@ def auditar_demonstrativos_contabeis(balanco: Dict[str, Any], dre: Dict[str, Any
             f"Passivo e Patrimônio Líquido não informados ou zerados para um Ativo Total de {formatar_moeda(ativo_total)}."
         )
 
-    # 2. TESTE DE SINAIS E INTEGRIDADE DE ATIVO
+    # 3. TESTE DE SINAIS E INTEGRIDADE DE ATIVO
     if disponibilidades < 0:
         erros_criticos.append("Disponibilidades / Caixa não pode apresentar saldo negativo no Balanço.")
     if contas_a_receber < 0 or estoques < 0:
@@ -341,7 +550,7 @@ def auditar_demonstrativos_contabeis(balanco: Dict[str, Any], dre: Dict[str, Any
     if ativo_total < 0 or ativo_circulante < 0:
         erros_criticos.append("Total do Ativo ou Ativo Circulante não pode ser negativo.")
 
-    # 3. TESTE DE CONSISTÊNCIA INTERNA DA DRE
+    # 4. TESTE DE CONSISTÊNCIA INTERNA DA DRE
     if receita_bruta > 0 and receita_liquida > (receita_bruta * 1.01):
         erros_criticos.append(
             f"Inconsistência na DRE: A Receita Líquida ({formatar_moeda(receita_liquida)}) "
@@ -360,8 +569,7 @@ def auditar_demonstrativos_contabeis(balanco: Dict[str, Any], dre: Dict[str, Any
             f"é superior à própria Receita Operacional Líquida ({formatar_moeda(receita_liquida)})."
         )
 
-    # 4. CRUZAMENTO ANALÍTICO: DRE vs. BALANÇO PATRIMONIAL
-    # Contas a Receber vs. Receita Anual
+    # 5. CRUZAMENTO ANALÍTICO: DRE vs. BALANÇO PATRIMONIAL
     if receita_liquida > 0 and contas_a_receber > (receita_liquida * 2.0) and contas_a_receber > 100000.0:
         alertas.append(
             f"Divergência entre DRE e Balanço: O saldo de Contas a Receber ({formatar_moeda(contas_a_receber)}) "
@@ -369,14 +577,12 @@ def auditar_demonstrativos_contabeis(balanco: Dict[str, Any], dre: Dict[str, Any
             f"Indica possível acúmulo de créditos vencidos ou exercício contábil incompatível."
         )
 
-    # Lucro Líquido vs. Patrimônio Líquido
     if patrimonio_liquido > 0 and patrimonio_liquido < 20000.0 and lucro_liquido > 1000000.0:
         alertas.append(
             f"Incompatibilidade de Porte: Lucro Líquido de {formatar_moeda(lucro_liquido)} "
             f"declarado para um Patrimônio Líquido de apenas {formatar_moeda(patrimonio_liquido)}."
         )
 
-    # 5. ATIVO CIRCULANTE vs. COMPONENTES
     soma_componentes_ac = disponibilidades + contas_a_receber + estoques
     if ativo_circulante > 0 and soma_componentes_ac > (ativo_circulante * 1.25):
         alertas.append(
@@ -391,7 +597,7 @@ def auditar_demonstrativos_contabeis(balanco: Dict[str, Any], dre: Dict[str, Any
         status_auditoria = "REJEITADO_INCONSISTENTE"
         diagnostico = (
             "Os demonstrativos contábeis foram REJEITADOS pela Auditoria Inteligente. "
-            "Foram detectadas incongruências matemáticas e contábeis graves que invalidam o cálculo de risco."
+            "Foram detectadas incongruências matemáticas, cadastrais ou de escala que invalidam o parecer favorável."
         )
     elif len(alertas) > 0:
         status_auditoria = "APROVADO_COM_RESSALVAS"
@@ -479,8 +685,12 @@ def consultar_empresa(cnpj: str):
 # Rota para extração de contas contábeis de texto / relatório
 @app.post("/api/v1/documentos/extrair")
 def extrair_documentos(dados: ExtracaoTextoInput):
-    resultado = extrair_contas_contabeis(dados.texto)
-    auditoria = auditar_demonstrativos_contabeis(resultado["balanco"], resultado["dre"])
+    resultado = extrair_contas_contabeis(dados.texto, capital_social_cadastral=float(dados.capital_social_cadastral or 0.0))
+    auditoria = auditar_demonstrativos_contabeis(
+        resultado["balanco"],
+        resultado["dre"],
+        capital_social_cadastral=float(dados.capital_social_cadastral or 0.0)
+    )
     resultado["auditoria"] = auditoria
     return resultado
 
@@ -489,7 +699,8 @@ def extrair_documentos(dados: ExtracaoTextoInput):
 @app.post("/api/v1/documentos/upload")
 async def upload_documentos(
     arquivo_balanco: Optional[UploadFile] = File(None),
-    arquivo_dre: Optional[UploadFile] = File(None)
+    arquivo_dre: Optional[UploadFile] = File(None),
+    capital_social_cadastral: Optional[float] = Form(0.0)
 ):
     texto_combinado = ""
     nomes_arquivos = []
@@ -501,8 +712,9 @@ async def upload_documentos(
             texto_extraido = extrair_texto_de_arquivo(arq.filename, conteudo_bytes)
             texto_combinado += f"\n--- INICIO ARQUIVO {arq.filename} ---\n" + texto_extraido
 
-    resultado = extrair_contas_contabeis(texto_combinado)
-    auditoria = auditar_demonstrativos_contabeis(resultado["balanco"], resultado["dre"])
+    cap_cadastral = float(capital_social_cadastral or 0.0)
+    resultado = extrair_contas_contabeis(texto_combinado, capital_social_cadastral=cap_cadastral)
+    auditoria = auditar_demonstrativos_contabeis(resultado["balanco"], resultado["dre"], capital_social_cadastral=cap_cadastral)
     resultado["auditoria"] = auditoria
     resultado["arquivos_processados"] = nomes_arquivos
     return resultado
@@ -526,30 +738,17 @@ def validar_auditoria_contabil(dados: AuditoriaInput):
 def analisar_credito(dados: AnaliseCreditoInput):
     b = dados.balanco.model_dump() if dados.balanco else {}
     d = dados.dre.model_dump() if dados.dre else {}
+    cap_cadastral = float(dados.capital_social_cadastral or 0.0)
 
-    # 1. EXECUTAR AUDITORIA CONTÁBIL PRIMEIRO
-    auditoria = auditar_demonstrativos_contabeis(b, d)
+    # 1. EXECUTAR AUDITORIA CONTÁBIL PRIMEIRO (com validação cruzada com capital cadastral)
+    auditoria = auditar_demonstrativos_contabeis(b, d, capital_social_cadastral=cap_cadastral)
 
-    # Se a auditoria for rejeitada por inconsistência severa, bloqueia a concessão
+    # Se a auditoria for rejeitada por inconsistência severa, bloqueia a concessão imediatamente
     if not auditoria["aprovado"]:
-        registro_rejeitado = {
-            "cnpj": dados.cnpj,
-            "razao_social": dados.razao_social or "Empresa em Análise",
-            "receita_liquida_anual": d.get("receita_liquida", 0.0),
-            "liquidez_corrente": 0.0,
-            "margem_liquida": 0.0,
-            "endividamento_geral": 100.0,
-            "score": 80,
-            "classificacao_risco": "CRÍTICO - INCONSISTÊNCIA CONTÁBIL",
-            "status_decisao": "REPROVADO",
-            "limite_sugerido": 0.0,
-            "rating": "D",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
         return {
-            "score": 80,
+            "score": 50,
             "rating": "D",
-            "classificacao_risco": "CRÍTICO",
+            "classificacao_risco": "CRÍTICO - INCONSISTÊNCIA CONTÁBIL",
             "status_decisao": "REPROVADO",
             "limite_sugerido": 0.0,
             "capacidade_pagamento_mensal": 0.0,
@@ -564,18 +763,43 @@ def analisar_credito(dados: AnaliseCreditoInput):
             "razao_social": dados.razao_social
         }
 
-    # Grandezas contábeis
-    receita_liquida = d.get("receita_liquida") or dados.receita_liquida_anual or 1200000.0
-    ativo_total = b.get("ativo_total") or (receita_liquida * 0.8)
-    ativo_circulante = b.get("ativo_circulante") or (ativo_total * 0.55)
-    passivo_circulante = b.get("passivo_circulante") or (ativo_circulante / (dados.liquidez_corrente or 1.5))
-    estoques = b.get("estoques") or (ativo_circulante * 0.25)
-    passivo_nao_circulante = b.get("passivo_nao_circulante") or (ativo_total * 0.15)
-    patrimonio_liquido = b.get("patrimonio_liquido") or max(1000.0, ativo_total - passivo_circulante - passivo_nao_circulante)
+    # Grandezas contábeis estritamente extraídas ou informadas (SEM valores fictícios de mockup)
+    receita_liquida = float(d.get("receita_liquida") or dados.receita_liquida_anual or 0.0)
+    ativo_total = float(b.get("ativo_total") or 0.0)
+    ativo_circulante = float(b.get("ativo_circulante") or 0.0)
+    passivo_circulante = float(b.get("passivo_circulante") or 0.0)
+    estoques = float(b.get("estoques") or 0.0)
+    passivo_nao_circulante = float(b.get("passivo_nao_circulante") or 0.0)
+    patrimonio_liquido = float(b.get("patrimonio_liquido") or 0.0)
     
-    lucro_bruto = d.get("lucro_bruto") or (receita_liquida * 0.35)
-    ebitda = d.get("ebitda") or (receita_liquida * 0.18)
-    lucro_liquido = d.get("lucro_liquido") or (receita_liquida * (dados.margem_liquida or 10.0) / 100.0)
+    lucro_bruto = float(d.get("lucro_bruto") or 0.0)
+    ebitda = float(d.get("ebitda") or 0.0)
+    lucro_liquido = float(d.get("lucro_liquido") or 0.0)
+
+    # Se ambas as grandezas vitais estiverem ausentes, rejeita por ausência de dados reais
+    if ativo_total <= 0 or receita_liquida <= 0:
+        return {
+            "score": 0,
+            "rating": "D",
+            "classificacao_risco": "DADOS_INSUFICIENTES",
+            "status_decisao": "REPROVADO",
+            "limite_sugerido": 0.0,
+            "capacidade_pagamento_mensal": 0.0,
+            "auditoria": {
+                "aprovado": False,
+                "status_auditoria": "REJEITADO_SEM_DADOS",
+                "erros_criticos": ["Ativo Total ou Receita Líquida ausentes ou zerados no demonstrativo contábil."],
+                "alertas": []
+            },
+            "motivo_rejeicao": ["Ativo Total ou Receita Líquida ausentes ou zerados."],
+            "pontos_fortes": [],
+            "pontos_atencao": ["Demonstrativo sem valores contábeis reconhecidos."],
+            "indices": {},
+            "contas": {},
+            "gravado_supabase": False,
+            "cnpj": dados.cnpj,
+            "razao_social": dados.razao_social
+        }
 
     # Cruzamento de Índices Contábeis
     liq_corrente = round(ativo_circulante / passivo_circulante, 2) if passivo_circulante > 0 else 1.5

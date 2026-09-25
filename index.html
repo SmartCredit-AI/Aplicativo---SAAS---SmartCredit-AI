@@ -674,7 +674,78 @@
             border: 1px solid var(--border-color);
             padding: 14px 18px;
             border-radius: var(--radius-sm);
-            margin-bottom: 24px;
+            margin-bottom: 16px;
+        }
+
+        /* Barra de Escala / Unidade de Medida */
+        .escala-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            background: rgba(17, 24, 39, 0.75);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            border-radius: var(--radius-sm);
+            padding: 12px 18px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .escala-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .escala-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 12px;
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            border-radius: 20px;
+            font-size: 0.82rem;
+            color: var(--primary);
+        }
+
+        .escala-descricao {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .escala-switch {
+            display: inline-flex;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 3px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            gap: 2px;
+        }
+
+        .btn-escala {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-escala:hover:not(.active) {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .btn-escala.active {
+            background: var(--primary);
+            color: #0b1120;
+            font-weight: 700;
+            box-shadow: 0 2px 8px var(--primary-glow);
         }
 
         /* Quadro de Contas Contábeis */
@@ -1536,6 +1607,24 @@
                         </div>
                     </div>
 
+                    <!-- Seletor e Detector de Escala / Unidade de Medida dos Demonstrativos -->
+                    <div class="escala-bar" id="escalaBar">
+                        <div class="escala-info">
+                            <div class="escala-badge" id="escalaBadge">
+                                <span id="escalaIcone">🏷️</span>
+                                <span id="escalaTexto">Unidade: <strong>Em Reais (x1)</strong></span>
+                            </div>
+                            <span class="escala-descricao" id="escalaDescricao">
+                                Empresas listadas na CVM e relatórios contábeis frequentemente divulgam em R$ Milhares.
+                            </span>
+                        </div>
+                        <div class="escala-switch" id="escalaSwitch">
+                            <button type="button" class="btn-escala active" id="btnEscala1" data-fator="1">R$ Inteiros (x1)</button>
+                            <button type="button" class="btn-escala" id="btnEscala1000" data-fator="1000">R$ Milhares (x1.000)</button>
+                            <button type="button" class="btn-escala" id="btnEscala1000000" data-fator="1000000">R$ Milhões (x1.000.000)</button>
+                        </div>
+                    </div>
+
                     <!-- Contas Contábeis Extraídas (Balanço & DRE) -->
                     <div class="contas-container">
                         
@@ -2109,8 +2198,10 @@
 
         // Application State
         let empresaAtual = null;
+        let capitalSocialCadastral = 0;
         let analisesCarteiraCache = [];
         let statusAuditoriaAtual = { aprovado: false };
+        let fatorEscalaAtual = 1.0;
 
         // Toast Helper
         function showToast(message, type = 'info') {
@@ -2213,8 +2304,11 @@
                 byId('compNatureza').textContent = data.natureza_juridica || 'Não informada';
 
                 if (data.capital_social && Number(data.capital_social) > 0) {
+                    capitalSocialCadastral = Number(data.capital_social);
                     byId('accCapitalSocial').value = Number(data.capital_social);
                     recalcularIndicesEmTempoReal();
+                } else {
+                    capitalSocialCadastral = 0;
                 }
 
                 // Renderização do Quadro Societário (QSA)
@@ -2320,7 +2414,7 @@
                 let textoFinal = '';
                 wb.SheetNames.forEach(sheetName => {
                     const sheet = wb.Sheets[sheetName];
-                    const csv = XLSX.utils.sheet_to_csv(sheet);
+                    const csv = XLSX.utils.sheet_to_csv(sheet, { FS: ' | ' });
                     textoFinal += `\n--- PLANILHA: ${sheetName} ---\n` + csv;
                 });
                 return textoFinal;
@@ -2357,6 +2451,19 @@
             byId('extracaoStatusChip').style.color = 'var(--primary)';
             showToast(`Lendo e analisando ${file.name}...`, 'info');
 
+            // Limpa as contas correspondentes antes de descarregar os dados do arquivo (garante ausência de resquícios ou mockups)
+            if (tipoDoc === 'Balanco') {
+                ['accDisponibilidades', 'accContasReceber', 'accEstoques', 'accAtivoCirculante', 'accRealizavelLp', 'accImobilizado', 'accAtivoNaoCirculante', 'accAtivoTotal', 'accFornecedores', 'accEmprestimosCp', 'accPassivoCirculante', 'accFinanciamentosLp', 'accPassivoNaoCirculante', 'accPatrimonioLiquido', 'accCapitalSocial'].forEach(id => {
+                    const el = byId(id);
+                    if (el) el.value = 0;
+                });
+            } else if (tipoDoc === 'Dre') {
+                ['accReceitaBruta', 'accDeducoes', 'accReceitaLiquida', 'accCustosVendas', 'accLucroBruto', 'accDespesasOp', 'accEbitda', 'accDepreciacao', 'accResultadoFin', 'accLucroLiquido'].forEach(id => {
+                    const el = byId(id);
+                    if (el) el.value = 0;
+                });
+            }
+
             let textoExtraido = '';
             const nomeLower = file.name.toLowerCase();
 
@@ -2381,20 +2488,25 @@
                     const res = await fetch(`${apiBase}/api/v1/documentos/extrair`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ texto: textoExtraido })
+                        body: JSON.stringify({ 
+                            texto: textoExtraido,
+                            capital_social_cadastral: capitalSocialCadastral
+                        })
                     });
                     if (res.ok) {
                         const dados = await res.json();
-                        carregarContasNoFormulario(dados.balanco, dados.dre, tipoDoc);
+                        carregarContasNoFormulario(dados.balanco, dados.dre, tipoDoc, dados);
                         atualizarPainelAuditoria(dados.auditoria);
                         
                         if (dados.total_contas_detectadas > 0) {
-                            byId('extracaoStatusChip').textContent = `✓ ${dados.total_contas_detectadas} contas descarregadas de ${file.name}`;
+                            const escalaTxt = dados.descricao_escala ? ` (${dados.descricao_escala})` : '';
+                            byId('extracaoStatusChip').textContent = `✓ ${dados.total_contas_detectadas} contas descarregadas de ${file.name}${escalaTxt}`;
                             byId('extracaoStatusChip').style.color = 'var(--emerald)';
-                            showToast(`${dados.total_contas_detectadas} contas identificadas e descarregadas!`, 'success');
+                            showToast(`${dados.total_contas_detectadas} contas identificadas com escala ${dados.descricao_escala || 'em Reais'}!`, 'success');
                         } else {
-                            byId('extracaoStatusChip').textContent = `Nenhuma conta padrão detectada em ${file.name}. Preencha manualmente.`;
+                            byId('extracaoStatusChip').textContent = `⚠️ Nenhuma conta contábil padrão (CVM/CPC) identificada em ${file.name}. Verifique a planilha ou preencha manualmente.`;
                             byId('extracaoStatusChip').style.color = 'var(--amber)';
+                            showToast(`Nenhuma conta padrão identificada em ${file.name}.`, 'warning');
                         }
                         return;
                     }
@@ -2403,13 +2515,14 @@
                 }
             }
 
-            // Fallback: Upload direto multipart para processamento no servidor com pypdf/openpyxl
+            // Upload direto multipart para processamento no servidor com pypdf/openpyxl
             const formData = new FormData();
             if (tipoDoc === 'Balanco') {
                 formData.append('arquivo_balanco', file);
             } else {
                 formData.append('arquivo_dre', file);
             }
+            formData.append('capital_social_cadastral', capitalSocialCadastral);
 
             try {
                 const res = await fetch(`${apiBase}/api/v1/documentos/upload`, {
@@ -2418,16 +2531,17 @@
                 });
                 if (res.ok) {
                     const dados = await res.json();
-                    carregarContasNoFormulario(dados.balanco, dados.dre, tipoDoc);
+                    carregarContasNoFormulario(dados.balanco, dados.dre, tipoDoc, dados);
                     atualizarPainelAuditoria(dados.auditoria);
-                    byId('extracaoStatusChip').textContent = `✓ Contas contábeis descarregadas pelo servidor`;
+                    const escalaTxt = dados.descricao_escala ? ` (${dados.descricao_escala})` : '';
+                    byId('extracaoStatusChip').textContent = `✓ Contas contábeis descarregadas pelo servidor${escalaTxt}`;
                     byId('extracaoStatusChip').style.color = 'var(--emerald)';
                     showToast('Arquivo processado e contas descarregadas!', 'success');
                 } else {
                     throw new Error('Falha no upload');
                 }
             } catch (err) {
-                byId('extracaoStatusChip').textContent = `Aviso: ajuste ou confira os valores nos campos abaixo.`;
+                byId('extracaoStatusChip').textContent = `Aviso: confira ou ajuste os números nas tabelas abaixo.`;
                 byId('extracaoStatusChip').style.color = 'var(--amber)';
                 showToast('Arquivo carregado. Por favor, confira os números nas tabelas.', 'info');
             }
@@ -2501,45 +2615,92 @@
             showToast('Contas contábeis zeradas.', 'info');
         });
 
-        function carregarContasNoFormulario(b = {}, d = {}, tipoOrigem = null) {
+        function carregarContasNoFormulario(b = {}, d = {}, tipoOrigem = null, dadosExtracao = null) {
+            // Atualiza a escala se fornecida pela extração inteligente da IA
+            if (dadosExtracao && dadosExtracao.fator_escala) {
+                atualizarBarraEscala(dadosExtracao.fator_escala, dadosExtracao.descricao_escala);
+            }
+
             // Descarrega contas do Balanço se disponíveis
             if (b && Object.keys(b).length > 0) {
-                if (b.disponibilidades !== undefined && b.disponibilidades !== 0) byId('accDisponibilidades').value = b.disponibilidades;
-                if (b.contas_a_receber !== undefined && b.contas_a_receber !== 0) byId('accContasReceber').value = b.contas_a_receber;
-                if (b.estoques !== undefined && b.estoques !== 0) byId('accEstoques').value = b.estoques;
-                if (b.ativo_circulante !== undefined && b.ativo_circulante !== 0) byId('accAtivoCirculante').value = b.ativo_circulante;
+                if (b.disponibilidades !== undefined) byId('accDisponibilidades').value = b.disponibilidades;
+                if (b.contas_a_receber !== undefined) byId('accContasReceber').value = b.contas_a_receber;
+                if (b.estoques !== undefined) byId('accEstoques').value = b.estoques;
+                if (b.ativo_circulante !== undefined) byId('accAtivoCirculante').value = b.ativo_circulante;
                 
-                if (b.realizavel_longo_prazo !== undefined && b.realizavel_longo_prazo !== 0) byId('accRealizavelLp').value = b.realizavel_longo_prazo;
-                if (b.imobilizado !== undefined && b.imobilizado !== 0) byId('accImobilizado').value = b.imobilizado;
-                if (b.ativo_nao_circulante !== undefined && b.ativo_nao_circulante !== 0) byId('accAtivoNaoCirculante').value = b.ativo_nao_circulante;
-                if (b.ativo_total !== undefined && b.ativo_total !== 0) byId('accAtivoTotal').value = b.ativo_total;
+                if (b.realizavel_longo_prazo !== undefined) byId('accRealizavelLp').value = b.realizavel_longo_prazo;
+                if (b.imobilizado !== undefined) byId('accImobilizado').value = b.imobilizado;
+                if (b.ativo_nao_circulante !== undefined) byId('accAtivoNaoCirculante').value = b.ativo_nao_circulante;
+                if (b.ativo_total !== undefined) byId('accAtivoTotal').value = b.ativo_total;
 
-                if (b.fornecedores !== undefined && b.fornecedores !== 0) byId('accFornecedores').value = b.fornecedores;
-                if (b.emprestimos_curto_prazo !== undefined && b.emprestimos_curto_prazo !== 0) byId('accEmprestimosCp').value = b.emprestimos_curto_prazo;
-                if (b.passivo_circulante !== undefined && b.passivo_circulante !== 0) byId('accPassivoCirculante').value = b.passivo_circulante;
+                if (b.fornecedores !== undefined) byId('accFornecedores').value = b.fornecedores;
+                if (b.emprestimos_curto_prazo !== undefined) byId('accEmprestimosCp').value = b.emprestimos_curto_prazo;
+                if (b.passivo_circulante !== undefined) byId('accPassivoCirculante').value = b.passivo_circulante;
 
-                if (b.financiamentos_longo_prazo !== undefined && b.financiamentos_longo_prazo !== 0) byId('accFinanciamentosLp').value = b.financiamentos_longo_prazo;
-                if (b.passivo_nao_circulante !== undefined && b.passivo_nao_circulante !== 0) byId('accPassivoNaoCirculante').value = b.passivo_nao_circulante;
-                if (b.patrimonio_liquido !== undefined && b.patrimonio_liquido !== 0) byId('accPatrimonioLiquido').value = b.patrimonio_liquido;
-                if (b.capital_social !== undefined && b.capital_social !== 0) byId('accCapitalSocial').value = b.capital_social;
+                if (b.financiamentos_longo_prazo !== undefined) byId('accFinanciamentosLp').value = b.financiamentos_longo_prazo;
+                if (b.passivo_nao_circulante !== undefined) byId('accPassivoNaoCirculante').value = b.passivo_nao_circulante;
+                if (b.patrimonio_liquido !== undefined) byId('accPatrimonioLiquido').value = b.patrimonio_liquido;
+                if (b.capital_social !== undefined) byId('accCapitalSocial').value = b.capital_social;
             }
 
             // Descarrega contas da DRE se disponíveis
             if (d && Object.keys(d).length > 0) {
-                if (d.receita_bruta !== undefined && d.receita_bruta !== 0) byId('accReceitaBruta').value = d.receita_bruta;
-                if (d.deducoes !== undefined && d.deducoes !== 0) byId('accDeducoes').value = d.deducoes;
-                if (d.receita_liquida !== undefined && d.receita_liquida !== 0) byId('accReceitaLiquida').value = d.receita_liquida;
-                if (d.custos_vendas !== undefined && d.custos_vendas !== 0) byId('accCustosVendas').value = d.custos_vendas;
-                if (d.lucro_bruto !== undefined && d.lucro_bruto !== 0) byId('accLucroBruto').value = d.lucro_bruto;
-                if (d.despesas_operacionais !== undefined && d.despesas_operacionais !== 0) byId('accDespesasOp').value = d.despesas_operacionais;
-                if (d.ebitda !== undefined && d.ebitda !== 0) byId('accEbitda').value = d.ebitda;
-                if (d.depreciacao_amortizacao !== undefined && d.depreciacao_amortizacao !== 0) byId('accDepreciacao').value = d.depreciacao_amortizacao;
-                if (d.resultado_financeiro !== undefined && d.resultado_financeiro !== 0) byId('accResultadoFin').value = d.resultado_financeiro;
-                if (d.lucro_liquido !== undefined && d.lucro_liquido !== 0) byId('accLucroLiquido').value = d.lucro_liquido;
+                if (d.receita_bruta !== undefined) byId('accReceitaBruta').value = d.receita_bruta;
+                if (d.deducoes !== undefined) byId('accDeducoes').value = d.deducoes;
+                if (d.receita_liquida !== undefined) byId('accReceitaLiquida').value = d.receita_liquida;
+                if (d.custos_vendas !== undefined) byId('accCustosVendas').value = d.custos_vendas;
+                if (d.lucro_bruto !== undefined) byId('accLucroBruto').value = d.lucro_bruto;
+                if (d.despesas_operacionais !== undefined) byId('accDespesasOp').value = d.despesas_operacionais;
+                if (d.ebitda !== undefined) byId('accEbitda').value = d.ebitda;
+                if (d.depreciacao_amortizacao !== undefined) byId('accDepreciacao').value = d.depreciacao_amortizacao;
+                if (d.resultado_financeiro !== undefined) byId('accResultadoFin').value = d.resultado_financeiro;
+                if (d.lucro_liquido !== undefined) byId('accLucroLiquido').value = d.lucro_liquido;
+            }
+
+            if (extraMeta && extraMeta.fator_escala) {
+                atualizarBarraEscala(extraMeta.fator_escala, extraMeta.descricao_escala);
             }
 
             recalcularIndicesEmTempoReal();
         }
+
+        // Atualização e Comutação da Escala / Unidade de Medida
+        function atualizarBarraEscala(fator, descricao) {
+            fatorEscalaAtual = Number(fator) || 1.0;
+            const badgeTexto = byId('escalaTexto');
+            if (badgeTexto) {
+                const rotulo = descricao || (fator === 1000 ? 'Em milhares de Reais (x1.000)' : (fator === 1000000 ? 'Em milhões de Reais (x1.000.000)' : 'Em Reais (x1)'));
+                badgeTexto.innerHTML = `Unidade: <strong>${rotulo}</strong>`;
+            }
+
+            document.querySelectorAll('#escalaSwitch .btn-escala').forEach(b => {
+                if (Number(b.dataset.fator) === fatorEscalaAtual) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+        }
+
+        // Listener para ajuste manual de escala pelo analista
+        document.querySelectorAll('#escalaSwitch .btn-escala').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const novoFator = Number(btn.dataset.fator) || 1.0;
+                if (novoFator === fatorEscalaAtual) return;
+
+                const proporcao = novoFator / fatorEscalaAtual;
+                document.querySelectorAll('.conta-input').forEach(input => {
+                    const valAtual = Number(input.value) || 0;
+                    if (valAtual !== 0) {
+                        input.value = Math.round(valAtual * proporcao);
+                    }
+                });
+
+                atualizarBarraEscala(novoFator, btn.textContent.trim());
+                recalcularIndicesEmTempoReal();
+                showToast(`Escala alterada para ${btn.textContent.trim()}. Valores ajustados com precisão!`, 'info');
+            });
+        });
 
         // ==========================================================
         // CRUZAMENTO CONTÁBIL, AUDITORIA POR IA E RECÁLCULO
@@ -2736,7 +2897,15 @@
                 return;
             }
 
-            // 1. Equação Fundamental do Balanço
+            // 1. Validação Cruzada de Consistência (Regra de Negócio: Ativo Total vs Capital Social Cadastral)
+            if (capitalSocialCadastral > 0 && ativoTotal > 0 && ativoTotal < (capitalSocialCadastral * 0.90)) {
+                erros.push(`Incompatibilidade de Escala / Arquivo Inválido: O Ativo Total informado (${formatMoney(ativoTotal)}) é inferior ao Capital Social cadastral (${formatMoney(capitalSocialCadastral)}). Provável demonstrativo em R$ Mil ou Milhões sem o multiplicador devido.`);
+                if ((ativoTotal * 1000) >= (capitalSocialCadastral * 0.5)) {
+                    alertas.push(`Sugestão de Escala: Clique no botão 'Em milhares (x1.000)' no topo para ajustar a unidade e conciliar com o porte da empresa.`);
+                }
+            }
+
+            // 2. Equação Fundamental do Balanço
             const difBalanco = Math.abs(ativoTotal - somaPassivoPl);
             if (ativoTotal > 0 && somaPassivoPl > 0) {
                 const percDif = (difBalanco / ativoTotal) * 100;
@@ -2747,11 +2916,11 @@
                 erros.push(`O Ativo Total está informado (${formatMoney(ativoTotal)}), mas Passivo e Patrimônio Líquido estão zerados.`);
             }
 
-            // 2. Integridade dos Sinais
+            // 3. Integridade dos Sinais
             if (caixa < 0) erros.push('Disponibilidades / Caixa não pode apresentar saldo negativo no Balanço.');
             if (ativoTotal < 0) erros.push('Ativo Total com valor negativo inválido.');
 
-            // 3. Coerência da DRE
+            // 4. Coerência da DRE
             if (recBruta > 0 && recLiq > (recBruta * 1.01)) {
                 erros.push(`Inconsistência na DRE: A Receita Líquida (${formatMoney(recLiq)}) é maior do que a Receita Bruta (${formatMoney(recBruta)}).`);
             }
@@ -2762,7 +2931,7 @@
                 erros.push(`Inconsistência Crítica: O Lucro Líquido (${formatMoney(lLiq)}) é superior à própria Receita Operacional Líquida (${formatMoney(recLiq)}).`);
             }
 
-            // 4. Cruzamento DRE vs Balanço
+            // 5. Cruzamento DRE vs Balanço
             if (recLiq > 0 && clientes > (recLiq * 2.0) && clientes > 100000) {
                 alertas.push(`Divergência entre DRE e Balanço: O saldo de Contas a Receber (${formatMoney(clientes)}) ultrapassa 200% do Faturamento Anual (${formatMoney(recLiq)}).`);
             }
@@ -2882,6 +3051,7 @@
             const payload = {
                 cnpj: empresaAtual ? empresaAtual.cnpj : cnpjInput.value.replace(/\D/g, '') || null,
                 razao_social: empresaAtual ? (empresaAtual.razao_social || empresaAtual.nome_fantasia) : 'Empresa em Análise',
+                capital_social_cadastral: capitalSocialCadastral,
                 balanco: {
                     ativo_total: c.ativo_total,
                     ativo_circulante: c.ativo_circulante,
@@ -2931,7 +3101,12 @@
                 byId('stepCard3').classList.add('completed');
                 
                 if (data.status_decisao === 'REPROVADO' && data.auditoria && !data.auditoria.aprovado) {
-                    showToast('Crédito Reprovado: Arquivos rejeitados por inconsistência contábil.', 'error');
+                    const motivoIncompat = (data.motivo_rejeicao || []).some(m => typeof m === 'string' && m.includes('Incompatibilidade de Escala'));
+                    if (motivoIncompat) {
+                        showToast('Aprovação Travada: Incompatibilidade de Escala (Ativo Total < Capital Social). Ajuste a escala (x1.000) se o balanço for em R$ Mil.', 'error');
+                    } else {
+                        showToast('Crédito Reprovado: Arquivos rejeitados por inconsistência contábil.', 'error');
+                    }
                 } else {
                     showToast('Parecer de crédito emitido e registrado no Supabase!', 'success');
                 }
@@ -3022,6 +3197,7 @@
             byId('stepCard2').className = 'step-card';
             byId('stepCard3').className = 'step-card';
             document.querySelectorAll('.conta-input').forEach(i => i.value = 0);
+            atualizarBarraEscala(1.0, 'Em Reais (x1)');
             recalcularIndicesEmTempoReal();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
