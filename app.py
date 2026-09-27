@@ -871,7 +871,7 @@ def analisar_credito(dados: AnaliseCreditoInput):
     perfil_divida = round((passivo_circulante / exigivel_total) * 100.0, 1) if exigivel_total > 0 else 50.0
 
     margem_bruta = round((lucro_bruto / receita_liquida) * 100.0, 1) if receita_liquida > 0 else 30.0
-    margem_ebitda = round((ebitda / receita_liquida) * 100.0, 1) if receita_liquida > 0 else 15.0
+    margem_ebitda = round((ebitda / receita_liquida) * 100.0, 2) if receita_liquida > 0 else 15.0
     margem_liquida = round((lucro_liquido / receita_liquida) * 100.0, 1) if receita_liquida > 0 else 10.0
 
     roe = round((lucro_liquido / patrimonio_liquido) * 100.0, 1) if patrimonio_liquido > 0 else 0.0
@@ -989,15 +989,17 @@ def analisar_credito(dados: AnaliseCreditoInput):
         decisao = "REPROVADO"
         fator_limite = 0.0
 
-    capacidade_mensal = round(max(0.0, (ebitda * 0.40) / 12.0), 2)
+    capacidade_operacional_mensal = round(max(0.0, (ebitda * 0.40) / 12.0), 2)
     limite_bruto = receita_liquida * fator_limite
     teto_pl = patrimonio_liquido * 0.50 if patrimonio_liquido > 0 else 0.0
-    teto_mensal = capacidade_mensal * 6.0 if capacidade_mensal > 0 else 0.0
+    teto_mensal = capacidade_operacional_mensal * 6.0 if capacidade_operacional_mensal > 0 else 0.0
     
     if decisao != "REPROVADO" and teto_pl > 0 and teto_mensal > 0:
         limite_sugerido = round(min(limite_bruto, max(limite_bruto * 0.5, teto_pl), max(limite_bruto * 0.5, teto_mensal)), 2)
     else:
         limite_sugerido = round(limite_bruto, 2) if decisao != "REPROVADO" else 0.0
+
+    capacidade_mensal = round(limite_sugerido / 12.0, 2)
 
     agora_iso = datetime.now(timezone.utc).isoformat()
 

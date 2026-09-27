@@ -2245,6 +2245,7 @@
         let fatorEscalaPorDocumento = { Balanco: null, Dre: null };
         let escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
         let capitalSocialDoBalancoCarregado = false;
+        let ebitdaCalculadoAutomaticamente = false;
 
         // Toast Helper
         function showToast(message, type = 'info') {
@@ -2616,7 +2617,10 @@
             Object.entries(campos).forEach(([tipo, camposTipo]) => {
                 if (!tiposEncontrados.has(tipo)) return;
                 Object.entries(camposTipo).forEach(([conta, id]) => {
-                    if (!encontradas.has(conta)) byId(id).value = '';
+                    if (!encontradas.has(conta)) {
+                        byId(id).value = '';
+                        if (conta === 'ebitda') ebitdaCalculadoAutomaticamente = false;
+                    }
                 });
             });
         }
@@ -2788,6 +2792,7 @@
 
             // Descarrega contas da DRE se disponíveis
             if (carregarDre && d && Object.keys(d).length > 0) {
+                ebitdaCalculadoAutomaticamente = false;
                 if (d.receita_bruta !== undefined) byId('accReceitaBruta').value = d.receita_bruta;
                 if (d.deducoes !== undefined) byId('accDeducoes').value = d.deducoes;
                 if (d.receita_liquida !== undefined) byId('accReceitaLiquida').value = d.receita_liquida;
@@ -2961,7 +2966,21 @@
                 byId('accLucroBruto').value = lBruto;
             }
 
+            const campoEbitda = byId('accEbitda');
+            const campoEbit = byId('accEbit');
+            const campoDepreciacao = byId('accDepreciacao');
+            const temBaseParaEbitda = campoEbit.value.trim() !== '' && campoDepreciacao.value.trim() !== '' && Number(campoDepreciacao.value) !== 0;
             let ebitda = c.ebitda;
+            if (ebitdaCalculadoAutomaticamente && !temBaseParaEbitda) {
+                campoEbitda.value = '';
+                ebitdaCalculadoAutomaticamente = false;
+                ebitda = 0;
+            }
+            if ((campoEbitda.value.trim() === '' || ebitdaCalculadoAutomaticamente) && temBaseParaEbitda) {
+                ebitda = Number(campoEbit.value) + Math.abs(Number(campoDepreciacao.value));
+                campoEbitda.value = ebitda;
+                ebitdaCalculadoAutomaticamente = true;
+            }
 
             let lLiq = c.lucro_liquido;
             if (lLiq === 0 && ebitda > 0) {
@@ -3024,7 +3043,7 @@
                 byId('cardMargemBruta').textContent = `${mBruta.toFixed(1)}%`;
 
                 const ebitdaInformado = byId('accEbitda').value !== '';
-                byId('cardMargemEbitda').textContent = ebitdaInformado ? `${((ebitda / recLiq) * 100).toFixed(1)}%` : 'N/D';
+                byId('cardMargemEbitda').textContent = ebitdaInformado ? `${((ebitda / recLiq) * 100).toFixed(2)}%` : 'N/D';
 
                 const mLiq = (lLiq / recLiq) * 100;
                 byId('cardMargemLiquida').textContent = `${mLiq.toFixed(1)}%`;
@@ -3176,7 +3195,10 @@
 
         // Listener de recálculo em tempo real para todos os inputs
         document.querySelectorAll('.conta-input').forEach(input => {
-            input.addEventListener('input', recalcularIndicesEmTempoReal);
+            input.addEventListener('input', () => {
+                if (input.id === 'accEbitda') ebitdaCalculadoAutomaticamente = false;
+                recalcularIndicesEmTempoReal();
+            });
         });
 
         // Inicializa cálculos
@@ -3316,7 +3338,7 @@
             }
 
             byId('resLimite').textContent = formatMoney(data.limite_sugerido);
-            byId('resCapacidade').textContent = `${formatMoney(data.capacidade_pagamento_mensal)}/mês`;
+            byId('resCapacidade').textContent = `${formatMoney(Number(data.limite_sugerido || 0) / 12)}/mês`;
             byId('resReceitaDRE').textContent = formatMoney(payload.receita_liquida_anual || (payload.dre ? payload.dre.receita_liquida : 0));
 
             const ulFortes = byId('listaPontosFortes');
@@ -3344,6 +3366,7 @@
             empresaAtual = null;
             cnpjInput.value = '';
             statusAuditoriaAtual = { aprovado: false };
+            ebitdaCalculadoAutomaticamente = false;
             byId('btnLimparContas').disabled = true;
             byId('btnAvancarIndices').disabled = true;
             byId('btnCalcularAnalise').disabled = true;
