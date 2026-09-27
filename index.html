@@ -1647,6 +1647,13 @@
                                     </div>
                                 </div>
                                 <div class="conta-row">
+                                    <label class="conta-label" for="accAplicacoesFinanceirasCp">Aplicações Financeiras CP</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accAplicacoesFinanceirasCp" class="conta-input" value="0" placeholder="0,00">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
                                     <label class="conta-label" for="accContasReceber">Contas a Receber / Clientes</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
@@ -1717,6 +1724,13 @@
                                     </div>
                                 </div>
                                 <div class="conta-row">
+                                    <label class="conta-label" for="accOutrasObrigacoesCp">Outras Obrigações CP</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accOutrasObrigacoesCp" class="conta-input" value="0" placeholder="0,00">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
                                     <label class="conta-label" for="accPassivoCirculante" style="font-weight: 700; color: #fff;">Passivo Circulante Total</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
@@ -1734,6 +1748,13 @@
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
                                         <input type="number" step="any" id="accFinanciamentosLp" class="conta-input" value="0" placeholder="0,00">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accOutrasObrigacoesLp">Outras Obrigações LP</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accOutrasObrigacoesLp" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
@@ -1755,6 +1776,13 @@
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
                                         <input type="number" step="any" id="accCapitalSocial" class="conta-input" value="0" placeholder="0,00">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accReservasPl">Reservas e Outros Componentes do PL</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accReservasPl" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                             </div>
@@ -1839,6 +1867,13 @@
                                     <span>Resultado Operacional & Líquido</span>
                                 </div>
                                 <div class="conta-row">
+                                    <label class="conta-label" for="accEbit">Resultado Operacional (EBIT)</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accEbit" class="conta-input" value="0" placeholder="0,00">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
                                     <label class="conta-label" for="accEbitda" style="font-weight: 700; color:var(--emerald);">EBITDA / LAJIDA</label>
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
@@ -1857,6 +1892,13 @@
                                     <div class="conta-input-wrap">
                                         <span>R$</span>
                                         <input type="number" step="any" id="accResultadoFin" class="conta-input" value="0" placeholder="0,00">
+                                    </div>
+                                </div>
+                                <div class="conta-row">
+                                    <label class="conta-label" for="accImpostos">Impostos sobre o Lucro (IRPJ/CSLL)</label>
+                                    <div class="conta-input-wrap">
+                                        <span>R$</span>
+                                        <input type="number" step="any" id="accImpostos" class="conta-input" value="0" placeholder="0,00">
                                     </div>
                                 </div>
                                 <div class="conta-row">
@@ -2447,8 +2489,8 @@
         }
 
         const idsContasPorDocumento = {
-            Balanco: ['accDisponibilidades', 'accContasReceber', 'accEstoques', 'accAtivoCirculante', 'accRealizavelLp', 'accImobilizado', 'accAtivoNaoCirculante', 'accAtivoTotal', 'accFornecedores', 'accEmprestimosCp', 'accPassivoCirculante', 'accFinanciamentosLp', 'accPassivoNaoCirculante', 'accPatrimonioLiquido'],
-            Dre: ['accReceitaBruta', 'accDeducoes', 'accReceitaLiquida', 'accCustosVendas', 'accLucroBruto', 'accDespesasOp', 'accEbitda', 'accDepreciacao', 'accResultadoFin', 'accLucroLiquido']
+            Balanco: ['accDisponibilidades', 'accAplicacoesFinanceirasCp', 'accContasReceber', 'accEstoques', 'accAtivoCirculante', 'accRealizavelLp', 'accImobilizado', 'accAtivoNaoCirculante', 'accAtivoTotal', 'accFornecedores', 'accEmprestimosCp', 'accOutrasObrigacoesCp', 'accPassivoCirculante', 'accFinanciamentosLp', 'accOutrasObrigacoesLp', 'accPassivoNaoCirculante', 'accPatrimonioLiquido', 'accReservasPl'],
+            Dre: ['accReceitaBruta', 'accDeducoes', 'accReceitaLiquida', 'accCustosVendas', 'accLucroBruto', 'accDespesasOp', 'accEbit', 'accEbitda', 'accDepreciacao', 'accResultadoFin', 'accImpostos', 'accLucroLiquido']
         };
 
         function limparContasDoTipo(tipoDoc) {
@@ -2545,7 +2587,38 @@
                 documentosContabeisCarregados[tipoOrigem] = true;
             }
 
+            limparCamposSemContaEncontrada(dados);
+            recalcularIndicesEmTempoReal();
             return true;
+        }
+
+        function limparCamposSemContaEncontrada(dados) {
+            const encontradas = new Set((dados.contas_encontradas || []).map(conta => conta.conta));
+            const campos = {
+                balanco: {
+                    ativo_total: 'accAtivoTotal', ativo_circulante: 'accAtivoCirculante', disponibilidades: 'accDisponibilidades',
+                    aplicacoes_financeiras_cp: 'accAplicacoesFinanceirasCp', contas_a_receber: 'accContasReceber', estoques: 'accEstoques',
+                    ativo_nao_circulante: 'accAtivoNaoCirculante', realizavel_longo_prazo: 'accRealizavelLp', imobilizado: 'accImobilizado',
+                    passivo_circulante: 'accPassivoCirculante', fornecedores: 'accFornecedores', emprestimos_curto_prazo: 'accEmprestimosCp',
+                    outras_obrigacoes_cp: 'accOutrasObrigacoesCp', passivo_nao_circulante: 'accPassivoNaoCirculante',
+                    financiamentos_longo_prazo: 'accFinanciamentosLp', outras_obrigacoes_lp: 'accOutrasObrigacoesLp',
+                    patrimonio_liquido: 'accPatrimonioLiquido', reservas_pl: 'accReservasPl'
+                },
+                dre: {
+                    receita_bruta: 'accReceitaBruta', deducoes: 'accDeducoes', receita_liquida: 'accReceitaLiquida',
+                    custos_vendas: 'accCustosVendas', lucro_bruto: 'accLucroBruto', despesas_operacionais: 'accDespesasOp',
+                    ebit: 'accEbit', ebitda: 'accEbitda', depreciacao_amortizacao: 'accDepreciacao',
+                    resultado_financeiro: 'accResultadoFin', impostos: 'accImpostos', lucro_liquido: 'accLucroLiquido'
+                }
+            };
+            const tiposEncontrados = new Set((dados.contas_encontradas || []).map(conta => conta.tipo));
+
+            Object.entries(campos).forEach(([tipo, camposTipo]) => {
+                if (!tiposEncontrados.has(tipo)) return;
+                Object.entries(camposTipo).forEach(([conta, id]) => {
+                    if (!encontradas.has(conta)) byId(id).value = '';
+                });
+            });
         }
 
         async function processarArquivoContabil(file, tipoDoc) {
@@ -2687,6 +2760,7 @@
             // Descarrega contas do Balanço se disponíveis
             if (carregarBalanco && b && Object.keys(b).length > 0) {
                 if (b.disponibilidades !== undefined) byId('accDisponibilidades').value = b.disponibilidades;
+                if (b.aplicacoes_financeiras_cp !== undefined) byId('accAplicacoesFinanceirasCp').value = b.aplicacoes_financeiras_cp;
                 if (b.contas_a_receber !== undefined) byId('accContasReceber').value = b.contas_a_receber;
                 if (b.estoques !== undefined) byId('accEstoques').value = b.estoques;
                 if (b.ativo_circulante !== undefined) byId('accAtivoCirculante').value = b.ativo_circulante;
@@ -2698,11 +2772,14 @@
 
                 if (b.fornecedores !== undefined) byId('accFornecedores').value = b.fornecedores;
                 if (b.emprestimos_curto_prazo !== undefined) byId('accEmprestimosCp').value = b.emprestimos_curto_prazo;
+                if (b.outras_obrigacoes_cp !== undefined) byId('accOutrasObrigacoesCp').value = b.outras_obrigacoes_cp;
                 if (b.passivo_circulante !== undefined) byId('accPassivoCirculante').value = b.passivo_circulante;
 
                 if (b.financiamentos_longo_prazo !== undefined) byId('accFinanciamentosLp').value = b.financiamentos_longo_prazo;
+                if (b.outras_obrigacoes_lp !== undefined) byId('accOutrasObrigacoesLp').value = b.outras_obrigacoes_lp;
                 if (b.passivo_nao_circulante !== undefined) byId('accPassivoNaoCirculante').value = b.passivo_nao_circulante;
                 if (b.patrimonio_liquido !== undefined) byId('accPatrimonioLiquido').value = b.patrimonio_liquido;
+                if (b.reservas_pl !== undefined) byId('accReservasPl').value = b.reservas_pl;
                 if (b.capital_social !== undefined) {
                     capitalSocialDoBalancoCarregado = Number(b.capital_social) !== 0;
                     byId('accCapitalSocial').value = b.capital_social || capitalSocialCadastral;
@@ -2717,9 +2794,11 @@
                 if (d.custos_vendas !== undefined) byId('accCustosVendas').value = d.custos_vendas;
                 if (d.lucro_bruto !== undefined) byId('accLucroBruto').value = d.lucro_bruto;
                 if (d.despesas_operacionais !== undefined) byId('accDespesasOp').value = d.despesas_operacionais;
+                if (d.ebit !== undefined) byId('accEbit').value = d.ebit;
                 if (d.ebitda !== undefined) byId('accEbitda').value = d.ebitda;
                 if (d.depreciacao_amortizacao !== undefined) byId('accDepreciacao').value = d.depreciacao_amortizacao;
                 if (d.resultado_financeiro !== undefined) byId('accResultadoFin').value = d.resultado_financeiro;
+                if (d.impostos !== undefined) byId('accImpostos').value = d.impostos;
                 if (d.lucro_liquido !== undefined) byId('accLucroLiquido').value = d.lucro_liquido;
             }
 
@@ -2781,6 +2860,7 @@
         function obterValoresContas() {
             return {
                 disponibilidades: +byId('accDisponibilidades').value || 0,
+                aplicacoes_financeiras_cp: +byId('accAplicacoesFinanceirasCp').value || 0,
                 contas_a_receber: +byId('accContasReceber').value || 0,
                 estoques: +byId('accEstoques').value || 0,
                 ativo_circulante: +byId('accAtivoCirculante').value || 0,
@@ -2790,20 +2870,25 @@
                 ativo_total: +byId('accAtivoTotal').value || 0,
                 fornecedores: +byId('accFornecedores').value || 0,
                 emprestimos_cp: +byId('accEmprestimosCp').value || 0,
+                outras_obrigacoes_cp: +byId('accOutrasObrigacoesCp').value || 0,
                 passivo_circulante: +byId('accPassivoCirculante').value || 0,
                 financiamentos_lp: +byId('accFinanciamentosLp').value || 0,
+                outras_obrigacoes_lp: +byId('accOutrasObrigacoesLp').value || 0,
                 passivo_nao_circulante: +byId('accPassivoNaoCirculante').value || 0,
                 patrimonio_liquido: +byId('accPatrimonioLiquido').value || 0,
                 capital_social: +byId('accCapitalSocial').value || 0,
+                reservas_pl: +byId('accReservasPl').value || 0,
                 receita_bruta: +byId('accReceitaBruta').value || 0,
                 deducoes: +byId('accDeducoes').value || 0,
                 receita_liquida: +byId('accReceitaLiquida').value || 0,
                 custos_vendas: +byId('accCustosVendas').value || 0,
                 lucro_bruto: +byId('accLucroBruto').value || 0,
                 despesas_op: +byId('accDespesasOp').value || 0,
+                ebit: +byId('accEbit').value || 0,
                 ebitda: +byId('accEbitda').value || 0,
                 depreciacao: +byId('accDepreciacao').value || 0,
                 resultado_fin: +byId('accResultadoFin').value || 0,
+                impostos: +byId('accImpostos').value || 0,
                 lucro_liquido: +byId('accLucroLiquido').value || 0
             };
         }
@@ -2813,7 +2898,7 @@
 
             // Totalizadores do Balanço
             let ativoCirculante = c.ativo_circulante;
-            const somaAc = c.disponibilidades + c.contas_a_receber + c.estoques;
+            const somaAc = c.disponibilidades + c.aplicacoes_financeiras_cp + c.contas_a_receber + c.estoques;
             if (ativoCirculante === 0 && somaAc > 0) {
                 ativoCirculante = somaAc;
                 byId('accAtivoCirculante').value = ativoCirculante;
@@ -2833,20 +2918,28 @@
             }
 
             let passivoCirculante = c.passivo_circulante;
-            const somaPc = c.fornecedores + c.emprestimos_cp;
+            const somaPc = c.fornecedores + c.emprestimos_cp + c.outras_obrigacoes_cp;
             if (passivoCirculante === 0 && somaPc > 0) {
                 passivoCirculante = somaPc;
                 byId('accPassivoCirculante').value = passivoCirculante;
             }
 
             let passivoNaoCirculante = c.passivo_nao_circulante;
-            if (passivoNaoCirculante === 0 && c.financiamentos_lp > 0) {
-                passivoNaoCirculante = c.financiamentos_lp;
+            const somaPnc = c.financiamentos_lp + c.outras_obrigacoes_lp;
+            if (passivoNaoCirculante === 0 && somaPnc > 0) {
+                passivoNaoCirculante = somaPnc;
                 byId('accPassivoNaoCirculante').value = passivoNaoCirculante;
             }
 
+            let patrimonioLiquido = c.patrimonio_liquido;
+            const somaPl = c.capital_social + c.reservas_pl;
+            if (patrimonioLiquido === 0 && somaPl > 0) {
+                patrimonioLiquido = somaPl;
+                byId('accPatrimonioLiquido').value = patrimonioLiquido;
+            }
+
             const exigivelTotal = passivoCirculante + passivoNaoCirculante;
-            const somaPassivoPl = exigivelTotal + c.patrimonio_liquido;
+            const somaPassivoPl = exigivelTotal + patrimonioLiquido;
 
             // Labels de subtotais
             byId('subAtivoCirc').textContent = formatMoney(ativoCirculante);
@@ -2869,10 +2962,6 @@
             }
 
             let ebitda = c.ebitda;
-            if (ebitda === 0 && lBruto > 0 && c.despesas_op > 0) {
-                ebitda = lBruto - c.despesas_op;
-                byId('accEbitda').value = ebitda;
-            }
 
             let lLiq = c.lucro_liquido;
             if (lLiq === 0 && ebitda > 0) {
@@ -2934,22 +3023,22 @@
                 const mBruta = (lBruto / recLiq) * 100;
                 byId('cardMargemBruta').textContent = `${mBruta.toFixed(1)}%`;
 
-                const mEbitda = (ebitda / recLiq) * 100;
-                byId('cardMargemEbitda').textContent = `${mEbitda.toFixed(1)}%`;
+                const ebitdaInformado = byId('accEbitda').value !== '';
+                byId('cardMargemEbitda').textContent = ebitdaInformado ? `${((ebitda / recLiq) * 100).toFixed(1)}%` : 'N/D';
 
                 const mLiq = (lLiq / recLiq) * 100;
                 byId('cardMargemLiquida').textContent = `${mLiq.toFixed(1)}%`;
                 byId('badgeMargemLiquida').className = mLiq >= 8 ? 'indice-status status-good' : (mLiq > 0 ? 'indice-status status-warn' : 'indice-status status-bad');
             }
 
-            if (c.patrimonio_liquido > 0) {
-                const roe = (lLiq / c.patrimonio_liquido) * 100;
+            if (patrimonioLiquido > 0) {
+                const roe = (lLiq / patrimonioLiquido) * 100;
                 byId('cardRoe').textContent = `${roe.toFixed(1)}%`;
                 byId('badgeRoe').className = roe >= 15 ? 'indice-status status-good' : 'indice-status status-warn';
             }
 
             // Executa Auditoria Contábil Automática no Frontend / Backend
-            executarAuditoriaContabilLocal(ativoTotal, somaPassivoPl, recLiq, c.receita_bruta, lBruto, lLiq, c.contas_a_receber, c.disponibilidades, c.patrimonio_liquido);
+            executarAuditoriaContabilLocal(ativoTotal, somaPassivoPl, recLiq, c.receita_bruta, lBruto, lLiq, c.contas_a_receber, c.disponibilidades, patrimonioLiquido);
         }
 
         // Auditoria Contábil Instantânea
@@ -3125,6 +3214,7 @@
                     ativo_total: c.ativo_total,
                     ativo_circulante: c.ativo_circulante,
                     disponibilidades: c.disponibilidades,
+                    aplicacoes_financeiras_cp: c.aplicacoes_financeiras_cp,
                     contas_a_receber: c.contas_a_receber,
                     estoques: c.estoques,
                     ativo_nao_circulante: c.ativo_nao_circulante,
@@ -3133,10 +3223,13 @@
                     passivo_circulante: c.passivo_circulante,
                     fornecedores: c.fornecedores,
                     emprestimos_curto_prazo: c.emprestimos_cp,
+                    outras_obrigacoes_cp: c.outras_obrigacoes_cp,
                     passivo_nao_circulante: c.passivo_nao_circulante,
                     financiamentos_longo_prazo: c.financiamentos_lp,
+                    outras_obrigacoes_lp: c.outras_obrigacoes_lp,
                     patrimonio_liquido: c.patrimonio_liquido,
-                    capital_social: c.capital_social
+                    capital_social: c.capital_social,
+                    reservas_pl: c.reservas_pl
                 },
                 dre: {
                     receita_bruta: c.receita_bruta,
@@ -3145,10 +3238,11 @@
                     custos_vendas: c.custos_vendas,
                     lucro_bruto: c.lucro_bruto,
                     despesas_operacionais: c.despesas_op,
+                    ebit: c.ebit,
                     ebitda: c.ebitda,
                     depreciacao_amortizacao: c.depreciacao,
                     resultado_financeiro: c.resultado_fin,
-                    impostos: 0,
+                    impostos: c.impostos,
                     lucro_liquido: c.lucro_liquido
                 },
                 receita_liquida_anual: c.receita_liquida

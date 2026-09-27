@@ -64,6 +64,7 @@ class ContasBalanco(BaseModel):
     ativo_total: float = 0.0
     ativo_circulante: float = 0.0
     disponibilidades: float = 0.0
+    aplicacoes_financeiras_cp: float = 0.0
     contas_a_receber: float = 0.0
     estoques: float = 0.0
     ativo_nao_circulante: float = 0.0
@@ -72,10 +73,13 @@ class ContasBalanco(BaseModel):
     passivo_circulante: float = 0.0
     fornecedores: float = 0.0
     emprestimos_curto_prazo: float = 0.0
+    outras_obrigacoes_cp: float = 0.0
     passivo_nao_circulante: float = 0.0
     financiamentos_longo_prazo: float = 0.0
+    outras_obrigacoes_lp: float = 0.0
     patrimonio_liquido: float = 0.0
     capital_social: float = 0.0
+    reservas_pl: float = 0.0
 
 
 class ContasDre(BaseModel):
@@ -85,6 +89,7 @@ class ContasDre(BaseModel):
     custos_vendas: float = 0.0
     lucro_bruto: float = 0.0
     despesas_operacionais: float = 0.0
+    ebit: float = 0.0
     ebitda: float = 0.0
     depreciacao_amortizacao: float = 0.0
     resultado_financeiro: float = 0.0
@@ -398,18 +403,22 @@ def extrair_contas_contabeis(conteudo_texto: str, capital_social_cadastral: floa
         "ativo_total": r"(?:^\s*1(?:\.00)?\s*\||ativo\s+total|total\s+do\s+ativo|total\s+geral\s+do\s+ativo)",
         "ativo_circulante": r"(?:^\s*1\.01\s*\||ativo\s+circulante|total\s+do\s+ativo\s+circulante|circulante\s+ativo)",
         "disponibilidades": r"(?:^\s*1\.01\.01\s*\||caixa\s+e\s+equivalentes|caixa\s*(?:e|&)\s*bancos|disponibilidades|disponividades|bancos\s+conta\s+movimento|dispon[ií]vel)",
-        "contas_a_receber": r"(?:^\s*1\.01\.02\s*\||^\s*1\.01\.03\s*\||contas\s+a\s+receber|duplicatas\s+a\s+receber|clientes\s+a\s+receber|clientes\b|cr[eé]ditos\s+operacionais)",
+        "aplicacoes_financeiras_cp": r"(?:^\s*1\.01\.02\s*\||aplica[cç][oõ]es\s+financeiras)",
+        "contas_a_receber": r"(?:^\s*1\.01\.03\s*\||contas\s+a\s+receber|duplicatas\s+a\s+receber|clientes\s+a\s+receber|clientes\b|cr[eé]ditos\s+operacionais)",
         "estoques": r"(?:^\s*1\.01\.04\s*\||estoques?|mercadorias\s+para\s+revenda|produtos\s+acabados|mat[eé]rias\s+primas)",
-        "realizavel_longo_prazo": r"(?:^\s*1\.02\.01\s*\||realiz[aá]vel\s+a\s+longo\s+prazo|ativo\s+rlp|cr[eé]ditos\s+de\s+longo\s+prazo)",
-        "imobilizado": r"(?:^\s*1\.02\.03\s*\||^\s*1\.02\.02\s*\||imobilizado|ativo\s+imobilizado|intang[ií]vel|investimentos\s+e\s+imobilizado|bens\s+e\s+direitos)",
+        "realizavel_longo_prazo": r"(?:realiz[aá]vel\s+a\s+longo\s+prazo|ativo\s+rlp|cr[eé]ditos\s+de\s+longo\s+prazo)",
+        "imobilizado": r"(?:^\s*1\.02\.0[123]\s*\||imobilizado|ativo\s+imobilizado|intang[ií]vel|investimentos\s+e\s+imobilizado|bens\s+e\s+direitos)",
         "ativo_nao_circulante": r"(?:^\s*1\.02\s*\||ativo\s+n[aã]o\s+circulante(?:\s+total)?|total\s+do\s+ativo\s+n[aã]o\s+circulante|permanente)",
         "passivo_circulante": r"(?:^\s*2\.01\s*\||passivo\s+circulante|total\s+do\s+passivo\s+circulante|circulante\s+passivo)",
         "fornecedores": r"(?:^\s*2\.01\.01\s*\||^\s*2\.01\.02\s*\||fornecedores|contas\s+a\s+pagar\s+fornecedores|fornecedores\s+nacionais)",
-        "emprestimos_curto_prazo": r"(?:^\s*2\.01\.04\s*\||^\s*2\.01\.03\s*\||empr[eé]stimos\s+e\s+financiamentos\s+cp|empr[eé]stimos\s+(?:cp|curto\s+prazo)|financiamentos\s+cp|d[ií]vidas\s+cp)",
+        "emprestimos_curto_prazo": r"(?:^\s*2\.01\.02\s*\||^\s*2\.01\.04\s*\||empr[eé]stimos\s+e\s+financiamentos\s+cp|empr[eé]stimos\s+(?:cp|curto\s+prazo)|financiamentos\s+cp|d[ií]vidas\s+cp)",
+        "outras_obrigacoes_cp": r"(?:^\s*2\.01\.03\s*\||outras\s+obriga[cç][oõ]es\s*(?:cp|curto\s+prazo)?)",
         "passivo_nao_circulante": r"(?:^\s*2\.02\s*\||passivo\s+n[aã]o\s+circulante(?:\s+total)?|total\s+do\s+passivo\s+n[aã]o\s+circulante|exig[ií]vel\s+a\s+longo\s+prazo)",
         "financiamentos_longo_prazo": r"(?:^\s*2\.02\.01\s*\||empr[eé]stimos\s+lp|financiamentos\s+lp|d[ií]vidas\s+lp|financiamentos\s+a\s+longo\s+prazo)",
+        "outras_obrigacoes_lp": r"(?:^\s*2\.02\.02\s*\||outras\s+obriga[cç][oõ]es\s*(?:lp|longo\s+prazo)?)",
         "capital_social": r"(?:^\s*2\.03\.01\s*\||capital\s+social|capital\s+subscrito|capital\s+integralizado|capital\s+realizado)",
-        "patrimonio_liquido": r"(?:^\s*2\.03\s*\||patrim[oô]nio\s+l[ií]quido|total\s+do\s+patrim[oô]nio\s+l[ií]quido|pl\s+total)"
+        "patrimonio_liquido": r"(?:^\s*2\.03\s*\||(?:^|\|\s*)(?:patrim[oô]nio\s+l[ií]quido|total\s+do\s+patrim[oô]nio\s+l[ií]quido|pl\s+total)\b)",
+        "reservas_pl": r"(?:^\s*2\.03\.02\s*\||reservas\s+de\s+lucros|reservas\s+de\s+capital|reservas\s+e\s+outros\s+componentes)"
     }
 
     # Padrões regex para contas da DRE (Textuais e Códigos CVM)
@@ -420,13 +429,15 @@ def extrair_contas_contabeis(conteudo_texto: str, capital_social_cadastral: floa
         "custos_vendas": r"(?:^\s*3\.04\s*\||custo\s+(?:das\s+vendas|dos\s+produtos|dos\s+servi[cç]os|dos\s+bens)|custo\s+das\s+mercadorias|cmv|cpv|csp)",
         "lucro_bruto": r"(?:^\s*3\.05\s*\||lucro\s+bruto|resultado\s+bruto|resultado\s+operacional\s+bruto)",
         "despesas_operacionais": r"(?:^\s*3\.06\s*\||despesas\s+operacionais|despesas\s+com\s+vendas|despesas\s+administrativas|despesas\s+gerais)",
+        "ebit": r"(?:^\s*3\.07\s*\||resultado\s+antes\s+do\s+financeiro|\bebit\b)",
         "ebitda": r"(?:ebitda|lajida|resultado\s+operacional\s+antes\s+dos\s+efeitos|lucro\s+operacional)",
         "depreciacao_amortizacao": r"(?:deprecia[cç][aã]o|amortiza[cç][aã]o|deprecia[cç][aã]o\s+e\s+amortiza[cç][aã]o)",
-        "resultado_financeiro": r"(?:^\s*3\.07\s*\||^\s*3\.08\s*\||resultado\s+financeiro\s+l[ií]quido|despesas\s+financeiras\s+l[ií]quidas|receitas\s+e\s+despesas\s+financeiras)",
+        "resultado_financeiro": r"(?:^\s*3\.08\s*\||resultado\s+financeiro\s+l[ií]quido|despesas\s+financeiras\s+l[ií]quidas|receitas\s+e\s+despesas\s+financeiras)",
         "impostos": r"(?:irpj\s+e\s+csll|imposto\s+de\s+renda\s+e\s+contribui[cç][aã]o|provis[aã]o\s+para\s+irpj)",
         "lucro_liquido": r"(?:^\s*3\.11\s*\||lucro\s+l[ií]quido\s+do\s+exerc[ií]cio|lucro\s+l[ií]quido|resultado\s+l[ií]quido\s+do\s+exerc[ií]cio|lucro\/preju[ií]zo\s+l[ií]quido|resultado\s+do\s+per[ií]odo)"
     }
 
+    imobilizado_agregado_encontrado = False
     for linha in linhas:
         linha_limpa = linha.strip()
         if not linha_limpa or len(linha_limpa) < 3:
@@ -440,6 +451,29 @@ def extrair_contas_contabeis(conteudo_texto: str, capital_social_cadastral: floa
 
         # Testa com padrões de Balanço
         for chave, padrao in padroes_balanco.items():
+            if chave == "imobilizado" and re.search(padrao, linha_limpa, re.IGNORECASE):
+                valor_imobilizado = abs(valor_escalado)
+                descricao_normalizada = linha_limpa.casefold()
+                linha_tem_total_conjunto = bool(
+                    re.search(r"imobilizado.{0,40}intang[ií]vel|intang[ií]vel.{0,40}imobilizado", descricao_normalizada)
+                )
+                if linha_tem_total_conjunto:
+                    balanco[chave] = valor_imobilizado
+                    imobilizado_agregado_encontrado = True
+                elif not imobilizado_agregado_encontrado:
+                    balanco[chave] += valor_imobilizado
+                else:
+                    break
+                contas_encontradas.append({
+                    "tipo": "balanco",
+                    "conta": chave,
+                    "valor_bruto": abs(valor_bruto),
+                    "valor": valor_imobilizado,
+                    "fator_escala": fator_escala,
+                    "linha": linha_limpa
+                })
+                break
+
             if re.search(padrao, linha_limpa, re.IGNORECASE) and balanco[chave] == 0:
                 balanco[chave] = abs(valor_escalado)
                 contas_encontradas.append({
