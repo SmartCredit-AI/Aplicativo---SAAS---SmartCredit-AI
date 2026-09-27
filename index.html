@@ -2227,6 +2227,10 @@
         let analisesCarteiraCache = [];
         let statusAuditoriaAtual = { aprovado: false };
         let fatorEscalaAtual = 1.0;
+        let documentosContabeisCarregados = { Balanco: false, Dre: false };
+        let fatorEscalaPorDocumento = { Balanco: null, Dre: null };
+        let escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
+        let capitalSocialDoBalancoCarregado = false;
 
         // Toast Helper
         function showToast(message, type = 'info') {
@@ -2471,6 +2475,85 @@
             });
         }
 
+        const idsContasPorDocumento = {
+            Balanco: ['accDisponibilidades', 'accContasReceber', 'accEstoques', 'accAtivoCirculante', 'accRealizavelLp', 'accImobilizado', 'accAtivoNaoCirculante', 'accAtivoTotal', 'accFornecedores', 'accEmprestimosCp', 'accPassivoCirculante', 'accFinanciamentosLp', 'accPassivoNaoCirculante', 'accPatrimonioLiquido'],
+            Dre: ['accReceitaBruta', 'accDeducoes', 'accReceitaLiquida', 'accCustosVendas', 'accLucroBruto', 'accDespesasOp', 'accEbitda', 'accDepreciacao', 'accResultadoFin', 'accLucroLiquido']
+        };
+
+        function possuiContasDoTipo(dados, tipoDoc) {
+            const tipoConta = tipoDoc === 'Balanco' ? 'balanco' : 'dre';
+            return (dados.contas_encontradas || []).some(conta => conta.tipo === tipoConta);
+        }
+
+        function limparContasDoTipo(tipoDoc) {
+            (idsContasPorDocumento[tipoDoc] || []).forEach(id => {
+                byId(id).value = 0;
+            });
+        }
+
+        function ajustarEscalaDosDados(dados, tipoDoc, proporcao) {
+            const chave = tipoDoc === 'Balanco' ? 'balanco' : 'dre';
+            Object.keys(dados[chave] || {}).forEach(conta => {
+                dados[chave][conta] = Number(dados[chave][conta] || 0) * proporcao;
+            });
+        }
+
+        function ajustarEscalaDosCampos(tipoDoc, proporcao) {
+            (idsContasPorDocumento[tipoDoc] || []).forEach(id => {
+                const campo = byId(id);
+                campo.value = (Number(campo.value) || 0) * proporcao;
+            });
+            if (tipoDoc === 'Balanco' && capitalSocialDoBalancoCarregado) {
+                const capital = byId('accCapitalSocial');
+                capital.value = (Number(capital.value) || 0) * proporcao;
+            }
+        }
+
+        function descricaoDaEscala(fator) {
+            if (fator === 1000000) return 'Em milhões de Reais (x1.000.000)';
+            if (fator === 1000) return 'Em milhares de Reais (x1.000)';
+            return 'Em Reais (x1)';
+        }
+
+        function harmonizarEscalaDocumento(dados, tipoDoc) {
+            const outroTipo = tipoDoc === 'Balanco' ? 'Dre' : 'Balanco';
+            let fatorDocumento = Number(dados.fator_escala) || 1;
+            const escalaDeclarada = Boolean(dados.escala_declarada);
+
+            if (!documentosContabeisCarregados[outroTipo]) {
+                fatorEscalaPorDocumento[tipoDoc] = fatorDocumento;
+                escalaDeclaradaPorDocumento[tipoDoc] = escalaDeclarada;
+                return;
+            }
+
+            const fatorOutro = fatorEscalaPorDocumento[outroTipo] || 1;
+            const outraEscalaDeclarada = escalaDeclaradaPorDocumento[outroTipo];
+            if (escalaDeclarada && outraEscalaDeclarada && fatorDocumento !== fatorOutro) {
+                showToast('Balanço e DRE declaram escalas diferentes. Confira as unidades antes de avançar.', 'warning');
+                fatorEscalaPorDocumento[tipoDoc] = fatorDocumento;
+                escalaDeclaradaPorDocumento[tipoDoc] = escalaDeclarada;
+                return;
+            }
+
+            const fatorComum = escalaDeclarada ? fatorDocumento : (outraEscalaDeclarada ? fatorOutro : Math.max(fatorDocumento, fatorOutro));
+            if (fatorDocumento !== fatorComum) {
+                ajustarEscalaDosDados(dados, tipoDoc, fatorComum / fatorDocumento);
+                dados.escala_inferida = true;
+            }
+            if (fatorOutro !== fatorComum) {
+                ajustarEscalaDosCampos(outroTipo, fatorComum / fatorOutro);
+                fatorEscalaPorDocumento[outroTipo] = fatorComum;
+            }
+
+            fatorDocumento = fatorComum;
+            dados.fator_escala = fatorComum;
+            dados.descricao_escala = descricaoDaEscala(fatorComum);
+            fatorEscalaPorDocumento[tipoDoc] = fatorComum;
+            escalaDeclaradaPorDocumento[tipoDoc] = escalaDeclarada;
+            fatorEscalaAtual = fatorComum;
+            atualizarBarraEscala(fatorComum, dados.descricao_escala);
+        }
+
         async function processarArquivoContabil(file, tipoDoc) {
             if (!file) return;
             byId(`fileName${tipoDoc}`).textContent = `✓ ${file.name}`;
@@ -2479,19 +2562,6 @@
             byId('extracaoStatusChip').textContent = `Lendo ${file.name} e descarregando contas contábeis...`;
             byId('extracaoStatusChip').style.color = 'var(--primary)';
             showToast(`Lendo e analisando ${file.name}...`, 'info');
-
-            // Limpa as contas correspondentes antes de descarregar os dados do arquivo (garante ausência de resquícios ou mockups)
-            if (tipoDoc === 'Balanco') {
-                ['accDisponibilidades', 'accContasReceber', 'accEstoques', 'accAtivoCirculante', 'accRealizavelLp', 'accImobilizado', 'accAtivoNaoCirculante', 'accAtivoTotal', 'accFornecedores', 'accEmprestimosCp', 'accPassivoCirculante', 'accFinanciamentosLp', 'accPassivoNaoCirculante', 'accPatrimonioLiquido', 'accCapitalSocial'].forEach(id => {
-                    const el = byId(id);
-                    if (el) el.value = 0;
-                });
-            } else if (tipoDoc === 'Dre') {
-                ['accReceitaBruta', 'accDeducoes', 'accReceitaLiquida', 'accCustosVendas', 'accLucroBruto', 'accDespesasOp', 'accEbitda', 'accDepreciacao', 'accResultadoFin', 'accLucroLiquido'].forEach(id => {
-                    const el = byId(id);
-                    if (el) el.value = 0;
-                });
-            }
 
             let textoExtraido = '';
             const nomeLower = file.name.toLowerCase();
@@ -2524,20 +2594,18 @@
                     });
                     if (res.ok) {
                         const dados = await res.json();
-                        carregarContasNoFormulario(dados.balanco, dados.dre, tipoDoc, dados);
-                        atualizarPainelAuditoria(dados.auditoria);
-                        
-                        if (dados.total_contas_detectadas > 0) {
+                        if (possuiContasDoTipo(dados, tipoDoc)) {
+                            harmonizarEscalaDocumento(dados, tipoDoc);
+                            limparContasDoTipo(tipoDoc);
+                            carregarContasNoFormulario(dados.balanco, dados.dre, tipoDoc, dados);
+                            documentosContabeisCarregados[tipoDoc] = true;
                             const escalaTxt = dados.descricao_escala ? ` (${dados.descricao_escala})` : '';
                             byId('extracaoStatusChip').textContent = `✓ ${dados.total_contas_detectadas} contas descarregadas de ${file.name}${escalaTxt}`;
                             byId('extracaoStatusChip').style.color = 'var(--emerald)';
                             showToast(`${dados.total_contas_detectadas} contas identificadas com escala ${dados.descricao_escala || 'em Reais'}!`, 'success');
-                        } else {
-                            byId('extracaoStatusChip').textContent = `⚠️ Nenhuma conta contábil padrão (CVM/CPC) identificada em ${file.name}. Verifique a planilha ou preencha manualmente.`;
-                            byId('extracaoStatusChip').style.color = 'var(--amber)';
-                            showToast(`Nenhuma conta padrão identificada em ${file.name}.`, 'warning');
+                            return;
                         }
-                        return;
+                        console.info(`A extração local não reconheceu contas do tipo ${tipoDoc}; tentando leitura do arquivo no servidor.`);
                     }
                 } catch (e) {
                     console.log('Tentando upload multipart no servidor...', e);
@@ -2560,8 +2628,16 @@
                 });
                 if (res.ok) {
                     const dados = await res.json();
+                    if (!possuiContasDoTipo(dados, tipoDoc)) {
+                        byId('extracaoStatusChip').textContent = `Nenhuma conta de ${tipoDoc === 'Balanco' ? 'Balanço' : 'DRE'} foi reconhecida em ${file.name}. Os valores existentes foram mantidos.`;
+                        byId('extracaoStatusChip').style.color = 'var(--amber)';
+                        showToast('Nenhuma conta reconhecida para este documento; os valores existentes foram mantidos.', 'warning');
+                        return;
+                    }
+                    harmonizarEscalaDocumento(dados, tipoDoc);
+                    limparContasDoTipo(tipoDoc);
                     carregarContasNoFormulario(dados.balanco, dados.dre, tipoDoc, dados);
-                    atualizarPainelAuditoria(dados.auditoria);
+                    documentosContabeisCarregados[tipoDoc] = true;
                     const escalaTxt = dados.descricao_escala ? ` (${dados.descricao_escala})` : '';
                     byId('extracaoStatusChip').textContent = `✓ Contas contábeis descarregadas pelo servidor${escalaTxt}`;
                     byId('extracaoStatusChip').style.color = 'var(--emerald)';
@@ -2570,9 +2646,9 @@
                     throw new Error('Falha no upload');
                 }
             } catch (err) {
-                byId('extracaoStatusChip').textContent = `Aviso: confira ou ajuste os números nas tabelas abaixo.`;
+                byId('extracaoStatusChip').textContent = 'Não foi possível conectar ao serviço de análise. Os valores atuais foram mantidos; verifique se a API local está ativa e tente novamente.';
                 byId('extracaoStatusChip').style.color = 'var(--amber)';
-                showToast('Arquivo carregado. Por favor, confira os números nas tabelas.', 'info');
+                showToast('Falha ao processar o arquivo. Os valores existentes foram mantidos.', 'error');
             }
         }
 
@@ -2620,6 +2696,16 @@
 
                 document.querySelectorAll('.conta-input').forEach(input => { input.value = 0; });
                 carregarContasNoFormulario(dados.balanco, dados.dre, null, dados);
+                const tiposImportados = new Set((dados.contas_encontradas || []).map(conta => conta.tipo));
+                documentosContabeisCarregados = { Balanco: tiposImportados.has('balanco'), Dre: tiposImportados.has('dre') };
+                fatorEscalaPorDocumento = {
+                    Balanco: documentosContabeisCarregados.Balanco ? dados.fator_escala : null,
+                    Dre: documentosContabeisCarregados.Dre ? dados.fator_escala : null
+                };
+                escalaDeclaradaPorDocumento = {
+                    Balanco: documentosContabeisCarregados.Balanco && Boolean(dados.escala_declarada),
+                    Dre: documentosContabeisCarregados.Dre && Boolean(dados.escala_declarada)
+                };
                 atualizarPainelAuditoria(dados.auditoria);
                 byId('extracaoStatusChip').textContent = `✓ ${dados.total_contas_detectadas} contas importadas do texto colado${dados.descricao_escala ? ` (${dados.descricao_escala})` : ''}`;
                 byId('extracaoStatusChip').style.color = 'var(--emerald)';
@@ -2668,6 +2754,10 @@
             };
 
             carregarContasNoFormulario(balancoExemplo, dreExemplo);
+            atualizarBarraEscala(1, 'Em Reais (x1)');
+            documentosContabeisCarregados = { Balanco: true, Dre: true };
+            fatorEscalaPorDocumento = { Balanco: 1, Dre: 1 };
+            escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
             byId('extracaoStatusChip').textContent = '✓ Exemplo contábil perfeitamente conciliado carregado!';
             byId('extracaoStatusChip').style.color = 'var(--emerald)';
             showToast('Demonstrações contábeis modelo carregadas com sucesso!', 'success');
@@ -2678,6 +2768,11 @@
             document.querySelectorAll('.conta-input').forEach(input => {
                 input.value = 0;
             });
+            documentosContabeisCarregados = { Balanco: false, Dre: false };
+            fatorEscalaPorDocumento = { Balanco: null, Dre: null };
+            escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
+            capitalSocialDoBalancoCarregado = false;
+            atualizarBarraEscala(1, 'Em Reais (x1)');
             byId('extracaoStatusChip').textContent = 'Contas zeradas. Aguardando novo upload.';
             byId('extracaoStatusChip').style.color = 'var(--text-muted)';
             byId('stepSectionFinancials').classList.remove('visible');
@@ -2690,13 +2785,16 @@
         });
 
         function carregarContasNoFormulario(b = {}, d = {}, tipoOrigem = null, dadosExtracao = null) {
+            const carregarBalanco = !tipoOrigem || tipoOrigem === 'Balanco';
+            const carregarDre = !tipoOrigem || tipoOrigem === 'Dre';
+
             // Atualiza a escala se fornecida pela extração inteligente da IA
             if (dadosExtracao && dadosExtracao.fator_escala) {
                 atualizarBarraEscala(dadosExtracao.fator_escala, dadosExtracao.descricao_escala);
             }
 
             // Descarrega contas do Balanço se disponíveis
-            if (b && Object.keys(b).length > 0) {
+            if (carregarBalanco && b && Object.keys(b).length > 0) {
                 if (b.disponibilidades !== undefined) byId('accDisponibilidades').value = b.disponibilidades;
                 if (b.contas_a_receber !== undefined) byId('accContasReceber').value = b.contas_a_receber;
                 if (b.estoques !== undefined) byId('accEstoques').value = b.estoques;
@@ -2714,11 +2812,14 @@
                 if (b.financiamentos_longo_prazo !== undefined) byId('accFinanciamentosLp').value = b.financiamentos_longo_prazo;
                 if (b.passivo_nao_circulante !== undefined) byId('accPassivoNaoCirculante').value = b.passivo_nao_circulante;
                 if (b.patrimonio_liquido !== undefined) byId('accPatrimonioLiquido').value = b.patrimonio_liquido;
-                if (b.capital_social !== undefined) byId('accCapitalSocial').value = b.capital_social;
+                if (b.capital_social !== undefined) {
+                    capitalSocialDoBalancoCarregado = Number(b.capital_social) !== 0;
+                    byId('accCapitalSocial').value = b.capital_social || capitalSocialCadastral;
+                }
             }
 
             // Descarrega contas da DRE se disponíveis
-            if (d && Object.keys(d).length > 0) {
+            if (carregarDre && d && Object.keys(d).length > 0) {
                 if (d.receita_bruta !== undefined) byId('accReceitaBruta').value = d.receita_bruta;
                 if (d.deducoes !== undefined) byId('accDeducoes').value = d.deducoes;
                 if (d.receita_liquida !== undefined) byId('accReceitaLiquida').value = d.receita_liquida;
@@ -2771,6 +2872,12 @@
                 });
 
                 atualizarBarraEscala(novoFator, btn.textContent.trim());
+                Object.keys(documentosContabeisCarregados).forEach(tipoDoc => {
+                    if (documentosContabeisCarregados[tipoDoc]) {
+                        fatorEscalaPorDocumento[tipoDoc] = novoFator;
+                        escalaDeclaradaPorDocumento[tipoDoc] = true;
+                    }
+                });
                 recalcularIndicesEmTempoReal();
                 showToast(`Escala alterada para ${btn.textContent.trim()}. Valores ajustados com precisão!`, 'info');
             });

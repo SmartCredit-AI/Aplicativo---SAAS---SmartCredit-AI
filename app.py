@@ -253,6 +253,16 @@ def detectar_escala(conteudo_texto: str):
         if re.search(p, t):
             return "milhares", 1000.0, "Em milhares de Reais (x1.000)"
 
+    padroes_reais = [
+        r"valores\s+(?:est[aã]o\s+)?(?:expressos\s+)?em\s+reais",
+        r"valores\s+em\s+r\$\s*(?:unidades)?",
+        r"unidade(?:\s+de\s+medida)?\s*:\s*reais",
+        r"em\s+r\$\s*unidades"
+    ]
+    for p in padroes_reais:
+        if re.search(p, t):
+            return "reais", 1.0, "Em Reais (x1)"
+
     return "unidades", 1.0, "Em Reais (x1)"
 
 
@@ -376,6 +386,8 @@ def extrair_contas_contabeis(conteudo_texto: str, capital_social_cadastral: floa
     e aplica a escala de grandeza monetária detectada (Milhares / Milhões / Unidades).
     """
     tipo_escala, fator_escala, desc_escala = detectar_escala(conteudo_texto)
+    escala_declarada = tipo_escala != "unidades"
+    escala_inferida = False
     linhas = conteudo_texto.splitlines()
     balanco = ContasBalanco().model_dump()
     dre = ContasDre().model_dump()
@@ -468,6 +480,7 @@ def extrair_contas_contabeis(conteudo_texto: str, capital_social_cadastral: floa
             1.0,
         )
         if fator_inferido > 1.0:
+            escala_inferida = True
             fator_escala = fator_inferido
             tipo_escala = "milhares" if fator_inferido == 1000.0 else "milhoes"
             desc_escala = (
@@ -487,6 +500,8 @@ def extrair_contas_contabeis(conteudo_texto: str, capital_social_cadastral: floa
         "escala_detectada": tipo_escala,
         "fator_escala": fator_escala,
         "descricao_escala": desc_escala,
+        "escala_declarada": escala_declarada,
+        "escala_inferida": escala_inferida,
         "balanco": balanco,
         "dre": dre,
         "total_contas_detectadas": len(contas_encontradas),
