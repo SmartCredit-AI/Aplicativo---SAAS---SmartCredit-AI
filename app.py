@@ -471,29 +471,17 @@ def extrair_contas_contabeis(conteudo_texto: str, capital_social_cadastral: floa
     # capital makes the unscaled asset total implausibly small.
     ativo_total = float(balanco.get("ativo_total") or 0.0)
     if tipo_escala == "unidades" and capital_social_cadastral > 0 and 0 < ativo_total < capital_social_cadastral * 0.01:
-        fator_inferido = next(
-            (
-                fator
-                for fator in (1000.0, 1000000.0)
-                if ativo_total * fator >= capital_social_cadastral * 0.5
-            ),
-            1.0,
-        )
-        if fator_inferido > 1.0:
-            escala_inferida = True
-            fator_escala = fator_inferido
-            tipo_escala = "milhares" if fator_inferido == 1000.0 else "milhoes"
-            desc_escala = (
-                "Escala inferida em milhares de Reais (x1.000)"
-                if fator_inferido == 1000.0
-                else "Escala inferida em milhões de Reais (x1.000.000)"
-            )
-            for contas in (balanco, dre):
-                for chave, valor in contas.items():
-                    contas[chave] = valor * fator_inferido
-            for conta in contas_encontradas:
-                conta["valor"] *= fator_inferido
-                conta["fator_escala"] = fator_inferido
+        fator_inferido = 1000.0
+        escala_inferida = True
+        fator_escala = fator_inferido
+        tipo_escala = "milhares"
+        desc_escala = "Escala inferida em milhares de Reais (x1.000)"
+        for contas in (balanco, dre):
+            for chave, valor in contas.items():
+                contas[chave] = valor * fator_inferido
+        for conta in contas_encontradas:
+            conta["valor"] *= fator_inferido
+            conta["fator_escala"] = fator_inferido
 
     return {
         "sucesso": True,
@@ -546,23 +534,14 @@ def auditar_demonstrativos_contabeis(balanco: Dict[str, Any], dre: Dict[str, Any
     ebitda = float(dre.get("ebitda") or 0.0)
     lucro_liquido = float(dre.get("lucro_liquido") or 0.0)
 
-    # 1. VALIDAÇÃO CRUZADA DE CONSISTÊNCIA: ATIVO TOTAL vs. CAPITAL SOCIAL CADASTRAL
-    # Regra de Negócio: Trava a aprovação se Ativo Total lido < Capital Social Cadastral
+    # 1. ALERTA DE COMPATIBILIDADE: ATIVO TOTAL vs. CAPITAL SOCIAL CADASTRAL
     if capital_social_cadastral > 0 and ativo_total > 0:
         if ativo_total < (capital_social_cadastral * 0.90):
-            erros_criticos.append(
-                f"Incompatibilidade de Escala / Arquivo Inválido: O Ativo Total lido ({formatar_moeda(ativo_total)}) "
-                f"é inferior ao Capital Social Cadastral na Receita Federal ({formatar_moeda(capital_social_cadastral)}). "
-                f"Demonstrativos contábeis de companhias de médio/grande porte são expressos em R$ Mil ou R$ Milhões. "
-                f"A aprovação automática foi travada para mitigar risco cadastral e distorção de escala."
+            alertas.append(
+                f"O Ativo Total ({formatar_moeda(ativo_total)}) é inferior ao Capital Social cadastral "
+                f"na Receita Federal ({formatar_moeda(capital_social_cadastral)}). "
+                f"Isso não caracteriza desequilíbrio patrimonial por si só. Confirme a empresa, o exercício e a unidade dos demonstrativos."
             )
-            # Dica orientativa de correção de escala
-            if (ativo_total * 1000.0) >= (capital_social_cadastral * 0.5):
-                alertas.append(
-                    f"Sugestão de Escala Contábil: Ao multiplicar os valores por 1.000 (R$ Mil), o Ativo Total passará para "
-                    f"{formatar_moeda(ativo_total * 1000.0)}, condizente com o porte cadastral da entidade. "
-                    f"Selecione o botão 'Em milhares (x1.000)' no topo das tabelas."
-                )
 
     # 2. TESTE DA EQUAÇÃO PATRIMONIAL FUNDAMENTAL (Ativo = Passivo + PL)
     soma_passivo_pl = passivo_circulante + passivo_nao_circulante + patrimonio_liquido

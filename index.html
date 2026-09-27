@@ -3078,12 +3078,9 @@
                 return;
             }
 
-            // 1. Validação Cruzada de Consistência (Regra de Negócio: Ativo Total vs Capital Social Cadastral)
+            // 1. Alerta cadastral: a diferença não invalida, sozinha, a equação patrimonial
             if (capitalSocialCadastral > 0 && ativoTotal > 0 && ativoTotal < (capitalSocialCadastral * 0.90)) {
-                erros.push(`Incompatibilidade de Escala / Arquivo Inválido: O Ativo Total informado (${formatMoney(ativoTotal)}) é inferior ao Capital Social cadastral (${formatMoney(capitalSocialCadastral)}). Provável demonstrativo em R$ Mil ou Milhões sem o multiplicador devido.`);
-                if ((ativoTotal * 1000) >= (capitalSocialCadastral * 0.5)) {
-                    alertas.push(`Sugestão de Escala: Clique no botão 'Em milhares (x1.000)' no topo para ajustar a unidade e conciliar com o porte da empresa.`);
-                }
+                alertas.push(`O Ativo Total (${formatMoney(ativoTotal)}) é inferior ao Capital Social cadastral (${formatMoney(capitalSocialCadastral)}). Isso não caracteriza desequilíbrio patrimonial por si só; confirme a empresa, o exercício e a unidade dos demonstrativos.`);
             }
 
             // 2. Equação Fundamental do Balanço
