@@ -2422,8 +2422,12 @@
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const content = await page.getTextContent();
-                    const linhas = content.items.map(item => item.str);
-                    textoFinal += `\n--- PÁGINA ${i} DO PDF ---\n` + linhas.join(' ');
+                    let textoPagina = '';
+                    content.items.forEach(item => {
+                        textoPagina += item.str || '';
+                        textoPagina += item.hasEOL ? '\n' : ' ';
+                    });
+                    textoFinal += `\n--- PÁGINA ${i} DO PDF ---\n` + textoPagina;
                 }
                 return textoFinal;
             } catch (e) {
