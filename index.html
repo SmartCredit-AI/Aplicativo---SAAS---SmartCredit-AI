@@ -2231,6 +2231,7 @@
         let fatorEscalaPorDocumento = { Balanco: null, Dre: null };
         let escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
         let capitalSocialDoBalancoCarregado = false;
+        let exemploContabilCarregado = false;
 
         // Toast Helper
         function showToast(message, type = 'info') {
@@ -2480,11 +2481,6 @@
             Dre: ['accReceitaBruta', 'accDeducoes', 'accReceitaLiquida', 'accCustosVendas', 'accLucroBruto', 'accDespesasOp', 'accEbitda', 'accDepreciacao', 'accResultadoFin', 'accLucroLiquido']
         };
 
-        function possuiContasDoTipo(dados, tipoDoc) {
-            const tipoConta = tipoDoc === 'Balanco' ? 'balanco' : 'dre';
-            return (dados.contas_encontradas || []).some(conta => conta.tipo === tipoConta);
-        }
-
         function limparContasDoTipo(tipoDoc) {
             (idsContasPorDocumento[tipoDoc] || []).forEach(id => {
                 byId(id).value = 0;
@@ -2554,6 +2550,35 @@
             atualizarBarraEscala(fatorComum, dados.descricao_escala);
         }
 
+        function aplicarDadosExtraidos(dados, tipoOrigem) {
+            const tipos = new Set((dados.contas_encontradas || []).map(conta => conta.tipo));
+            const carregarBalanco = tipos.has('balanco');
+            const carregarDre = tipos.has('dre');
+            if (!carregarBalanco && !carregarDre) return false;
+
+            if (carregarBalanco && carregarDre) {
+                document.querySelectorAll('.conta-input').forEach(input => { input.value = 0; });
+                carregarContasNoFormulario(dados.balanco, dados.dre, null, dados);
+                documentosContabeisCarregados = { Balanco: true, Dre: true };
+                fatorEscalaPorDocumento = { Balanco: dados.fator_escala, Dre: dados.fator_escala };
+                escalaDeclaradaPorDocumento = {
+                    Balanco: Boolean(dados.escala_declarada),
+                    Dre: Boolean(dados.escala_declarada)
+                };
+                atualizarPainelAuditoria(dados.auditoria);
+            } else {
+                const tipoContaOrigem = tipoOrigem === 'Balanco' ? 'balanco' : 'dre';
+                if (!tipos.has(tipoContaOrigem)) return false;
+                harmonizarEscalaDocumento(dados, tipoOrigem);
+                limparContasDoTipo(tipoOrigem);
+                carregarContasNoFormulario(dados.balanco, dados.dre, tipoOrigem, dados);
+                documentosContabeisCarregados[tipoOrigem] = true;
+            }
+
+            exemploContabilCarregado = false;
+            return true;
+        }
+
         async function processarArquivoContabil(file, tipoDoc) {
             if (!file) return;
             byId(`fileName${tipoDoc}`).textContent = `✓ ${file.name}`;
@@ -2562,6 +2587,18 @@
             byId('extracaoStatusChip').textContent = `Lendo ${file.name} e descarregando contas contábeis...`;
             byId('extracaoStatusChip').style.color = 'var(--primary)';
             showToast(`Lendo e analisando ${file.name}...`, 'info');
+
+            if (exemploContabilCarregado) {
+                document.querySelectorAll('.conta-input').forEach(input => { input.value = 0; });
+                byId('accCapitalSocial').value = capitalSocialCadastral || 0;
+                documentosContabeisCarregados = { Balanco: false, Dre: false };
+                fatorEscalaPorDocumento = { Balanco: null, Dre: null };
+                escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
+                capitalSocialDoBalancoCarregado = false;
+                exemploContabilCarregado = false;
+                atualizarBarraEscala(1, 'Em Reais (x1)');
+                recalcularIndicesEmTempoReal();
+            }
 
             let textoExtraido = '';
             const nomeLower = file.name.toLowerCase();
@@ -2594,11 +2631,7 @@
                     });
                     if (res.ok) {
                         const dados = await res.json();
-                        if (possuiContasDoTipo(dados, tipoDoc)) {
-                            harmonizarEscalaDocumento(dados, tipoDoc);
-                            limparContasDoTipo(tipoDoc);
-                            carregarContasNoFormulario(dados.balanco, dados.dre, tipoDoc, dados);
-                            documentosContabeisCarregados[tipoDoc] = true;
+                        if (aplicarDadosExtraidos(dados, tipoDoc)) {
                             const escalaTxt = dados.descricao_escala ? ` (${dados.descricao_escala})` : '';
                             byId('extracaoStatusChip').textContent = `✓ ${dados.total_contas_detectadas} contas descarregadas de ${file.name}${escalaTxt}`;
                             byId('extracaoStatusChip').style.color = 'var(--emerald)';
@@ -2628,16 +2661,12 @@
                 });
                 if (res.ok) {
                     const dados = await res.json();
-                    if (!possuiContasDoTipo(dados, tipoDoc)) {
+                    if (!aplicarDadosExtraidos(dados, tipoDoc)) {
                         byId('extracaoStatusChip').textContent = `Nenhuma conta de ${tipoDoc === 'Balanco' ? 'Balanço' : 'DRE'} foi reconhecida em ${file.name}. Os valores existentes foram mantidos.`;
                         byId('extracaoStatusChip').style.color = 'var(--amber)';
                         showToast('Nenhuma conta reconhecida para este documento; os valores existentes foram mantidos.', 'warning');
                         return;
                     }
-                    harmonizarEscalaDocumento(dados, tipoDoc);
-                    limparContasDoTipo(tipoDoc);
-                    carregarContasNoFormulario(dados.balanco, dados.dre, tipoDoc, dados);
-                    documentosContabeisCarregados[tipoDoc] = true;
                     const escalaTxt = dados.descricao_escala ? ` (${dados.descricao_escala})` : '';
                     byId('extracaoStatusChip').textContent = `✓ Contas contábeis descarregadas pelo servidor${escalaTxt}`;
                     byId('extracaoStatusChip').style.color = 'var(--emerald)';
@@ -2696,6 +2725,7 @@
 
                 document.querySelectorAll('.conta-input').forEach(input => { input.value = 0; });
                 carregarContasNoFormulario(dados.balanco, dados.dre, null, dados);
+                exemploContabilCarregado = false;
                 const tiposImportados = new Set((dados.contas_encontradas || []).map(conta => conta.tipo));
                 documentosContabeisCarregados = { Balanco: tiposImportados.has('balanco'), Dre: tiposImportados.has('dre') };
                 fatorEscalaPorDocumento = {
@@ -2758,6 +2788,7 @@
             documentosContabeisCarregados = { Balanco: true, Dre: true };
             fatorEscalaPorDocumento = { Balanco: 1, Dre: 1 };
             escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
+            exemploContabilCarregado = true;
             byId('extracaoStatusChip').textContent = '✓ Exemplo contábil perfeitamente conciliado carregado!';
             byId('extracaoStatusChip').style.color = 'var(--emerald)';
             showToast('Demonstrações contábeis modelo carregadas com sucesso!', 'success');
@@ -2772,6 +2803,7 @@
             fatorEscalaPorDocumento = { Balanco: null, Dre: null };
             escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
             capitalSocialDoBalancoCarregado = false;
+            exemploContabilCarregado = false;
             atualizarBarraEscala(1, 'Em Reais (x1)');
             byId('extracaoStatusChip').textContent = 'Contas zeradas. Aguardando novo upload.';
             byId('extracaoStatusChip').style.color = 'var(--text-muted)';
@@ -2872,6 +2904,7 @@
                 });
 
                 atualizarBarraEscala(novoFator, btn.textContent.trim());
+                exemploContabilCarregado = false;
                 Object.keys(documentosContabeisCarregados).forEach(tipoDoc => {
                     if (documentosContabeisCarregados[tipoDoc]) {
                         fatorEscalaPorDocumento[tipoDoc] = novoFator;
@@ -3196,7 +3229,10 @@
 
         // Listener de recálculo em tempo real para todos os inputs
         document.querySelectorAll('.conta-input').forEach(input => {
-            input.addEventListener('input', recalcularIndicesEmTempoReal);
+            input.addEventListener('input', () => {
+                exemploContabilCarregado = false;
+                recalcularIndicesEmTempoReal();
+            });
         });
 
         // Inicializa cálculos
