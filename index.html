@@ -1614,9 +1614,6 @@
                     <!-- Actions Bar -->
                     <div class="actions-bar">
                         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                            <button type="button" class="btn btn-outline-cyan" id="btnCarregarExemplo" disabled>
-                                🚀 Carregar Exemplo Contábil Realista
-                            </button>
                             <button type="button" class="btn btn-secondary" id="btnLimparContas" disabled>
                                 🔄 Zerar Contas
                             </button>
@@ -2231,7 +2228,6 @@
         let fatorEscalaPorDocumento = { Balanco: null, Dre: null };
         let escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
         let capitalSocialDoBalancoCarregado = false;
-        let exemploContabilCarregado = false;
 
         // Toast Helper
         function showToast(message, type = 'info') {
@@ -2410,7 +2406,6 @@
         byId('btnConfirmarEmpresa').addEventListener('click', () => {
             byId('stepSectionDocs').classList.add('visible');
             byId('stepCard2').classList.add('active');
-            byId('btnCarregarExemplo').disabled = false;
             byId('btnLimparContas').disabled = false;
             byId('stepSectionDocs').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
@@ -2575,7 +2570,6 @@
                 documentosContabeisCarregados[tipoOrigem] = true;
             }
 
-            exemploContabilCarregado = false;
             return true;
         }
 
@@ -2587,18 +2581,6 @@
             byId('extracaoStatusChip').textContent = `Lendo ${file.name} e descarregando contas contábeis...`;
             byId('extracaoStatusChip').style.color = 'var(--primary)';
             showToast(`Lendo e analisando ${file.name}...`, 'info');
-
-            if (exemploContabilCarregado) {
-                document.querySelectorAll('.conta-input').forEach(input => { input.value = 0; });
-                byId('accCapitalSocial').value = capitalSocialCadastral || 0;
-                documentosContabeisCarregados = { Balanco: false, Dre: false };
-                fatorEscalaPorDocumento = { Balanco: null, Dre: null };
-                escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
-                capitalSocialDoBalancoCarregado = false;
-                exemploContabilCarregado = false;
-                atualizarBarraEscala(1, 'Em Reais (x1)');
-                recalcularIndicesEmTempoReal();
-            }
 
             let textoExtraido = '';
             const nomeLower = file.name.toLowerCase();
@@ -2725,7 +2707,6 @@
 
                 document.querySelectorAll('.conta-input').forEach(input => { input.value = 0; });
                 carregarContasNoFormulario(dados.balanco, dados.dre, null, dados);
-                exemploContabilCarregado = false;
                 const tiposImportados = new Set((dados.contas_encontradas || []).map(conta => conta.tipo));
                 documentosContabeisCarregados = { Balanco: tiposImportados.has('balanco'), Dre: tiposImportados.has('dre') };
                 fatorEscalaPorDocumento = {
@@ -2750,50 +2731,6 @@
             }
         });
 
-        // Carregar Exemplo Contábil Realista
-        byId('btnCarregarExemplo').addEventListener('click', () => {
-            const balancoExemplo = {
-                disponibilidades: 420000,
-                contas_a_receber: 860000,
-                estoques: 470000,
-                ativo_circulante: 1750000,
-                realizavel_longo_prazo: 150000,
-                imobilizado: 600000,
-                ativo_nao_circulante: 750000,
-                ativo_total: 2500000,
-                fornecedores: 510000,
-                emprestimos_curto_prazo: 450000,
-                passivo_circulante: 960000,
-                financiamentos_longo_prazo: 340000,
-                passivo_nao_circulante: 340000,
-                patrimonio_liquido: 1200000,
-                capital_social: 700000
-            };
-
-            const dreExemplo = {
-                receita_bruta: 5800000,
-                deducoes: 750000,
-                receita_liquida: 5050000,
-                custos_vendas: 3100000,
-                lucro_bruto: 1950000,
-                despesas_operacionais: 980000,
-                ebitda: 970000,
-                depreciacao_amortizacao: 80000,
-                resultado_financeiro: -110000,
-                lucro_liquido: 590000
-            };
-
-            carregarContasNoFormulario(balancoExemplo, dreExemplo);
-            atualizarBarraEscala(1, 'Em Reais (x1)');
-            documentosContabeisCarregados = { Balanco: true, Dre: true };
-            fatorEscalaPorDocumento = { Balanco: 1, Dre: 1 };
-            escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
-            exemploContabilCarregado = true;
-            byId('extracaoStatusChip').textContent = '✓ Exemplo contábil perfeitamente conciliado carregado!';
-            byId('extracaoStatusChip').style.color = 'var(--emerald)';
-            showToast('Demonstrações contábeis modelo carregadas com sucesso!', 'success');
-        });
-
         // Zerar Contas
         byId('btnLimparContas').addEventListener('click', () => {
             document.querySelectorAll('.conta-input').forEach(input => {
@@ -2803,7 +2740,6 @@
             fatorEscalaPorDocumento = { Balanco: null, Dre: null };
             escalaDeclaradaPorDocumento = { Balanco: false, Dre: false };
             capitalSocialDoBalancoCarregado = false;
-            exemploContabilCarregado = false;
             atualizarBarraEscala(1, 'Em Reais (x1)');
             byId('extracaoStatusChip').textContent = 'Contas zeradas. Aguardando novo upload.';
             byId('extracaoStatusChip').style.color = 'var(--text-muted)';
@@ -2904,7 +2840,6 @@
                 });
 
                 atualizarBarraEscala(novoFator, btn.textContent.trim());
-                exemploContabilCarregado = false;
                 Object.keys(documentosContabeisCarregados).forEach(tipoDoc => {
                     if (documentosContabeisCarregados[tipoDoc]) {
                         fatorEscalaPorDocumento[tipoDoc] = novoFator;
@@ -3229,10 +3164,7 @@
 
         // Listener de recálculo em tempo real para todos os inputs
         document.querySelectorAll('.conta-input').forEach(input => {
-            input.addEventListener('input', () => {
-                exemploContabilCarregado = false;
-                recalcularIndicesEmTempoReal();
-            });
+            input.addEventListener('input', recalcularIndicesEmTempoReal);
         });
 
         // Inicializa cálculos
@@ -3395,7 +3327,6 @@
             empresaAtual = null;
             cnpjInput.value = '';
             statusAuditoriaAtual = { aprovado: false };
-            byId('btnCarregarExemplo').disabled = true;
             byId('btnLimparContas').disabled = true;
             byId('btnAvancarIndices').disabled = true;
             byId('btnCalcularAnalise').disabled = true;
