@@ -330,25 +330,6 @@
             box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
         }
 
-        .texto-contabil-colado {
-            width: 100%;
-            min-height: 150px;
-            margin-top: 16px;
-            padding: 12px 16px;
-            resize: vertical;
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: #fff;
-            font: inherit;
-        }
-
-        .texto-contabil-colado:focus {
-            border-color: var(--border-focus);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
-        }
-
         .btn {
             display: inline-flex;
             align-items: center;
@@ -1623,12 +1604,6 @@
                         </div>
                     </div>
 
-                    <div class="paste-contabil">
-                        <label class="conta-label" for="textoContabilColado">Ou cole aqui o texto do Balanço Patrimonial e da DRE</label>
-                        <textarea id="textoContabilColado" class="texto-contabil-colado" placeholder="Cole o conteúdo dos demonstrativos, incluindo descrições das contas e valores."></textarea>
-                        <button type="button" class="btn btn-secondary" id="btnImportarTextoColado">Importar valores para os campos</button>
-                    </div>
-
                     <!-- Seletor e Detector de Escala / Unidade de Medida dos Demonstrativos -->
                     <div class="escala-bar" id="escalaBar">
                         <div class="escala-info">
@@ -2584,20 +2559,23 @@
 
             let textoExtraido = '';
             const nomeLower = file.name.toLowerCase();
+            const excelLidoNoServidor = /\.(xlsx|xlsm|xltx)$/.test(nomeLower);
 
-            // Extração binária no navegador
-            if (nomeLower.endsWith('.pdf')) {
-                const buffer = await lerArquivoComoArrayBuffer(file);
-                if (buffer) {
-                    textoExtraido = await extrairTextoDePdf(buffer);
+            // XLSX uses openpyxl on the server to preserve worksheet cell structure.
+            if (!excelLidoNoServidor) {
+                if (nomeLower.endsWith('.pdf')) {
+                    const buffer = await lerArquivoComoArrayBuffer(file);
+                    if (buffer) {
+                        textoExtraido = await extrairTextoDePdf(buffer);
+                    }
+                } else if (nomeLower.endsWith('.xls')) {
+                    const buffer = await lerArquivoComoArrayBuffer(file);
+                    if (buffer) {
+                        textoExtraido = extrairTextoDeExcel(buffer);
+                    }
+                } else {
+                    textoExtraido = await lerArquivoComoTexto(file);
                 }
-            } else if (nomeLower.endsWith('.xlsx') || nomeLower.endsWith('.xls')) {
-                const buffer = await lerArquivoComoArrayBuffer(file);
-                if (buffer) {
-                    textoExtraido = extrairTextoDeExcel(buffer);
-                }
-            } else {
-                textoExtraido = await lerArquivoComoTexto(file);
             }
 
             // Se obteve texto limpo no front, envia para extração inteligente
@@ -2673,61 +2651,6 @@
         byId('fileDre').addEventListener('change', (e) => {
             if (e.target.files && e.target.files[0]) {
                 processarArquivoContabil(e.target.files[0], 'Dre');
-            }
-        });
-
-        byId('btnImportarTextoColado').addEventListener('click', async () => {
-            const texto = byId('textoContabilColado').value.trim();
-            if (!texto) {
-                showToast('Cole o conteúdo do Balanço Patrimonial e/ou da DRE antes de importar.', 'warning');
-                return;
-            }
-
-            const botao = byId('btnImportarTextoColado');
-            botao.disabled = true;
-            botao.textContent = 'Importando...';
-            byId('extracaoStatusChip').textContent = 'Extraindo contas do texto colado...';
-            byId('extracaoStatusChip').style.color = 'var(--primary)';
-
-            try {
-                const resposta = await fetch(`${apiBase}/api/v1/documentos/extrair`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ texto, capital_social_cadastral: capitalSocialCadastral })
-                });
-                if (!resposta.ok) throw new Error('Falha ao extrair o texto');
-
-                const dados = await resposta.json();
-                if (!dados.total_contas_detectadas) {
-                    byId('extracaoStatusChip').textContent = 'Nenhuma conta reconhecida. Confira os rótulos e valores colados.';
-                    byId('extracaoStatusChip').style.color = 'var(--amber)';
-                    showToast('Nenhuma conta contábil foi identificada no texto.', 'warning');
-                    return;
-                }
-
-                document.querySelectorAll('.conta-input').forEach(input => { input.value = 0; });
-                carregarContasNoFormulario(dados.balanco, dados.dre, null, dados);
-                const tiposImportados = new Set((dados.contas_encontradas || []).map(conta => conta.tipo));
-                documentosContabeisCarregados = { Balanco: tiposImportados.has('balanco'), Dre: tiposImportados.has('dre') };
-                fatorEscalaPorDocumento = {
-                    Balanco: documentosContabeisCarregados.Balanco ? dados.fator_escala : null,
-                    Dre: documentosContabeisCarregados.Dre ? dados.fator_escala : null
-                };
-                escalaDeclaradaPorDocumento = {
-                    Balanco: documentosContabeisCarregados.Balanco && Boolean(dados.escala_declarada),
-                    Dre: documentosContabeisCarregados.Dre && Boolean(dados.escala_declarada)
-                };
-                atualizarPainelAuditoria(dados.auditoria);
-                byId('extracaoStatusChip').textContent = `✓ ${dados.total_contas_detectadas} contas importadas do texto colado${dados.descricao_escala ? ` (${dados.descricao_escala})` : ''}`;
-                byId('extracaoStatusChip').style.color = 'var(--emerald)';
-                showToast('Valores reconhecidos e carregados nos campos contábeis.', 'success');
-            } catch (erro) {
-                byId('extracaoStatusChip').textContent = 'Não foi possível importar o texto. Confira a conexão com o serviço de análise.';
-                byId('extracaoStatusChip').style.color = 'var(--amber)';
-                showToast('Falha ao importar os valores do texto colado.', 'error');
-            } finally {
-                botao.disabled = false;
-                botao.textContent = 'Importar valores para os campos';
             }
         });
 
