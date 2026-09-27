@@ -385,16 +385,16 @@ def extrair_contas_contabeis(conteudo_texto: str, capital_social_cadastral: floa
     padroes_balanco = {
         "ativo_total": r"(?:^\s*1(?:\.00)?\s*\||ativo\s+total|total\s+do\s+ativo|total\s+geral\s+do\s+ativo)",
         "ativo_circulante": r"(?:^\s*1\.01\s*\||ativo\s+circulante|total\s+do\s+ativo\s+circulante|circulante\s+ativo)",
-        "disponibilidades": r"(?:^\s*1\.01\.01\s*\||caixa\s+e\s+equivalentes|caixa\s+e\s+bancos|disponibilidades|bancos\s+conta\s+movimento|dispon[ií]vel)",
+        "disponibilidades": r"(?:^\s*1\.01\.01\s*\||caixa\s+e\s+equivalentes|caixa\s*(?:e|&)\s*bancos|disponibilidades|disponividades|bancos\s+conta\s+movimento|dispon[ií]vel)",
         "contas_a_receber": r"(?:^\s*1\.01\.02\s*\||^\s*1\.01\.03\s*\||contas\s+a\s+receber|duplicatas\s+a\s+receber|clientes\s+a\s+receber|clientes\b|cr[eé]ditos\s+operacionais)",
         "estoques": r"(?:^\s*1\.01\.04\s*\||estoques?|mercadorias\s+para\s+revenda|produtos\s+acabados|mat[eé]rias\s+primas)",
         "realizavel_longo_prazo": r"(?:^\s*1\.02\.01\s*\||realiz[aá]vel\s+a\s+longo\s+prazo|ativo\s+rlp|cr[eé]ditos\s+de\s+longo\s+prazo)",
         "imobilizado": r"(?:^\s*1\.02\.03\s*\||^\s*1\.02\.02\s*\||imobilizado|ativo\s+imobilizado|intang[ií]vel|investimentos\s+e\s+imobilizado|bens\s+e\s+direitos)",
-        "ativo_nao_circulante": r"(?:^\s*1\.02\s*\||ativo\s+n[aã]o\s+circulante|total\s+do\s+ativo\s+n[aã]o\s+circulante|permanente)",
+        "ativo_nao_circulante": r"(?:^\s*1\.02\s*\||ativo\s+n[aã]o\s+circulante(?:\s+total)?|total\s+do\s+ativo\s+n[aã]o\s+circulante|permanente)",
         "passivo_circulante": r"(?:^\s*2\.01\s*\||passivo\s+circulante|total\s+do\s+passivo\s+circulante|circulante\s+passivo)",
         "fornecedores": r"(?:^\s*2\.01\.01\s*\||^\s*2\.01\.02\s*\||fornecedores|contas\s+a\s+pagar\s+fornecedores|fornecedores\s+nacionais)",
         "emprestimos_curto_prazo": r"(?:^\s*2\.01\.04\s*\||^\s*2\.01\.03\s*\||empr[eé]stimos\s+e\s+financiamentos\s+cp|empr[eé]stimos\s+(?:cp|curto\s+prazo)|financiamentos\s+cp|d[ií]vidas\s+cp)",
-        "passivo_nao_circulante": r"(?:^\s*2\.02\s*\||passivo\s+n[aã]o\s+circulante|total\s+do\s+passivo\s+n[aã]o\s+circulante|exig[ií]vel\s+a\s+longo\s+prazo)",
+        "passivo_nao_circulante": r"(?:^\s*2\.02\s*\||passivo\s+n[aã]o\s+circulante(?:\s+total)?|total\s+do\s+passivo\s+n[aã]o\s+circulante|exig[ií]vel\s+a\s+longo\s+prazo)",
         "financiamentos_longo_prazo": r"(?:^\s*2\.02\.01\s*\||empr[eé]stimos\s+lp|financiamentos\s+lp|d[ií]vidas\s+lp|financiamentos\s+a\s+longo\s+prazo)",
         "capital_social": r"(?:^\s*2\.03\.01\s*\||capital\s+social|capital\s+subscrito|capital\s+integralizado|capital\s+realizado)",
         "patrimonio_liquido": r"(?:^\s*2\.03\s*\||patrim[oô]nio\s+l[ií]quido|total\s+do\s+patrim[oô]nio\s+l[ií]quido|pl\s+total)"
@@ -404,7 +404,7 @@ def extrair_contas_contabeis(conteudo_texto: str, capital_social_cadastral: floa
     padroes_dre = {
         "receita_bruta": r"(?:^\s*3\.01\s*\||receita\s+de\s+venda|receita\s+operacional\s+bruta|receita\s+bruta\s+de\s+vendas|vendas\s+brutas|faturamento\s+bruto)",
         "deducoes": r"(?:^\s*3\.02\s*\||dedu[cç][oõ]es\s+da\s+receita|impostos\s+incidentes\s+sobre\s+vendas|devolu[cç][oõ]es\s+e\s+abatimentos)",
-        "receita_liquida": r"(?:^\s*3\.03\s*\||receita\s+operacional\s+l[ií]quida|receita\s+l[ií]quida|vendas\s+l[ií]quidas|total\s+da\s+receita\s+l[ií]quida)",
+        "receita_liquida": r"(?:^\s*3\.03\s*\||rec\.?\s+l[ií]quida|receita\s+operacional\s+l[ií]quida|receita\s+l[ií]quida|vendas\s+l[ií]quidas|total\s+da\s+receita\s+l[ií]quida)",
         "custos_vendas": r"(?:^\s*3\.04\s*\||custo\s+(?:das\s+vendas|dos\s+produtos|dos\s+servi[cç]os|dos\s+bens)|custo\s+das\s+mercadorias|cmv|cpv|csp)",
         "lucro_bruto": r"(?:^\s*3\.05\s*\||lucro\s+bruto|resultado\s+bruto|resultado\s+operacional\s+bruto)",
         "despesas_operacionais": r"(?:^\s*3\.06\s*\||despesas\s+operacionais|despesas\s+com\s+vendas|despesas\s+administrativas|despesas\s+gerais)",
