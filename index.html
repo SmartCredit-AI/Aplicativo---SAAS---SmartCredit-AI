@@ -2879,7 +2879,7 @@
             }
 
             byId('badgeReceitaLiquida').textContent = `Rec. Líquida: ${formatMoney(recLiq)}`;
-            const mLiqPerc = recLiq > 0 ? ((lLiq / recLiq) * 100).toFixed(1) : '0.0';
+            const mLiqPerc = recLiq > 0 ? ((lLiq / recLiq) * 100).toFixed(2) : '0.00';
             byId('lblMargemLiquidaCalc').textContent = `${mLiqPerc}%`;
 
             // Índices de Cruzamento

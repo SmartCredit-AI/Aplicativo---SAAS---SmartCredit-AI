@@ -455,6 +455,33 @@ def extrair_contas_contabeis(conteudo_texto: str, capital_social_cadastral: floa
                 })
                 break
 
+    # Infer thousands/millions when the document omits its unit but the registered
+    # capital makes the unscaled asset total implausibly small.
+    ativo_total = float(balanco.get("ativo_total") or 0.0)
+    if tipo_escala == "unidades" and capital_social_cadastral > 0 and 0 < ativo_total < capital_social_cadastral * 0.01:
+        fator_inferido = next(
+            (
+                fator
+                for fator in (1000.0, 1000000.0)
+                if ativo_total * fator >= capital_social_cadastral * 0.5
+            ),
+            1.0,
+        )
+        if fator_inferido > 1.0:
+            fator_escala = fator_inferido
+            tipo_escala = "milhares" if fator_inferido == 1000.0 else "milhoes"
+            desc_escala = (
+                "Escala inferida em milhares de Reais (x1.000)"
+                if fator_inferido == 1000.0
+                else "Escala inferida em milhões de Reais (x1.000.000)"
+            )
+            for contas in (balanco, dre):
+                for chave, valor in contas.items():
+                    contas[chave] = valor * fator_inferido
+            for conta in contas_encontradas:
+                conta["valor"] *= fator_inferido
+                conta["fator_escala"] = fator_inferido
+
     return {
         "sucesso": True,
         "escala_detectada": tipo_escala,
@@ -535,6 +562,9 @@ def auditar_demonstrativos_contabeis(balanco: Dict[str, Any], dre: Dict[str, Any
                 f"Desequilíbrio Patrimonial Severo: O Ativo Total ({formatar_moeda(ativo_total)}) "
                 f"diverge do Passivo Total + PL ({formatar_moeda(soma_passivo_pl)}) "
                 f"em {formatar_moeda(diferenca_balanco)} ({perc_dif:.1f}% de diferença). "
+                f"Componentes: Passivo Circulante ({formatar_moeda(passivo_circulante)}) + "
+                f"Passivo Não Circulante ({formatar_moeda(passivo_nao_circulante)}) + "
+                f"PL ({formatar_moeda(patrimonio_liquido)}). "
                 f"A Equação Fundamental do Balanço (Ativo = Passivo + PL) foi violada."
             )
     elif ativo_total > 0 and soma_passivo_pl == 0:
